@@ -14,6 +14,16 @@ class UserRepository extends CrudRepository{
             throw error;
         }
     }
+
+    async getByEmailWithPassword(email){
+        try {
+            const result = await this.model.findOne({email}).select('+password');
+            return result;
+        } catch (error) {
+            console.log('User Repository Error');
+            throw error;
+        }
+    };
 };
 
 export default UserRepository;

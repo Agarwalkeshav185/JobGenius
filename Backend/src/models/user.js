@@ -69,7 +69,6 @@ userSchema.methods.comparePassword = function(enteredPassword){
     } catch (error) {
         throw error;
     }
-
 }
 userSchema.methods.getJWTToken = function(){
     return jwt.sign({id : this._id}, JWT_SECRET_KEY, {
