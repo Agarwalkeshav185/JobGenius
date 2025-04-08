@@ -14,7 +14,10 @@ export const sendToken = async(user, statusCode, res, message)=>{
             token : token
         });
     } catch (error) {
-        throw error;
+        return res.status(400).json({
+            success : false,
+            message : error.message
+        })
     }
 
 }

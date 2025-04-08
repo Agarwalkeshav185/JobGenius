@@ -19,4 +19,20 @@ const isAuthenticated = catchAsynErrors(async(req, res, next)=>{
     next();
 });
 
-export default isAuthenticated;
+const isAuthorized = (...roles)=>{
+    return (req, res, next)=>{
+        if(!roles.includes(req.user.role)){
+            return res.status(400).json({
+                success : false,
+                message : `${req.user.role} not allowed to access this resource.`
+            });
+        }
+        next();
+    }
+}
+
+
+export {
+    isAuthenticated,
+    isAuthorized
+}

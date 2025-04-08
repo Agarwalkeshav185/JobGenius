@@ -3,7 +3,6 @@ import { ErrorHandler } from '../middlewares/error-middlewares.js';
 import { validateUserRegistration } from '../validators/UserRequestValidator.js';
 import  UserService from '../services/user-service.js';
 import { sendToken } from '../utils/jwtToken.js';
-import User from '../models/user.js';
 
 const userService = new UserService();
 
@@ -18,14 +17,23 @@ const register = catchAsynErrors(async (req, res, next) => {
 
 
 const loginUser = catchAsynErrors(async (req, res, next) => {
-    const {role, email, password} = req.body;
-    if(!role || !email || !password){
-        return next(
-            new ErrorHandler('Email, Password and Role are required.', 400)
-        );
+    try {
+        const {role, email, password} = req.body;
+        if(!role || !email || !password){
+            return next(
+                new ErrorHandler('Email, Password and Role are required.', 400)
+            );
+        }
+        const user = await userService.loginUser({ role, email, password });
+        sendToken(user, 200, res, 'User Logged in Successfully');
+    } catch (error) {
+        return res.status(400).json({
+            success : false,
+            message : error.message
+        })
+        
     }
-    const user = await userService.loginUser({ role, email, password });
-    sendToken(user, 200, res, 'User Logged in Successfully');
+    
 });
 
 const logout = catchAsynErrors(async (req, res, next)=>{
@@ -73,6 +81,19 @@ const updateProfile = catchAsynErrors(async (req, res, next)=>{
             err : error
         });
     }
+});
+
+const updatePassword = catchAsynErrors( async (req, res, next)=>{
+    try {
+        const response = await userService.updatePassword(req.body, req.user);
+        sendToken(response, 200, res, 'Password Updated Successfully');
+    } catch (error) {
+        return res.status(500).json({
+            success : false,
+            message : error.message,
+            err : error
+        })
+    }
 })
 
 export {
@@ -81,5 +102,6 @@ export {
     logout,
     getUser,
     updateProfile,
+    updatePassword
 
 }

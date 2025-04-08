@@ -49,11 +49,13 @@ class UserService{
         try {
             const user = await this.userRepository.getByEmailWithPassword(email);
             if(!user){
+                throw new Error('Invalid email or password.');
                 return next(new ErrorHandler('Invalid email or password.', 400));
             }
 
             const isPasswordMatched = await user.comparePassword(password);
             if(!isPasswordMatched || user.role != role){
+                throw new Error('Invalid email or password.');
                 return next(new ErrorHandler('Invalid email or password.', 400));
             }
             return user;
@@ -106,6 +108,28 @@ class UserService{
 
         } catch (error) {
             console.log('Update Profile Service Error');
+            throw error;
+        }
+    }
+
+    async updatePassword(data,user){
+        try {
+            const oldUser = await this.userRepository.getByEmailWithPassword(user.email);
+
+            const isMatched = await oldUser.comparePassword(data.oldPassword);
+            if(!isMatched){
+                throw new Error('Old password is incorrect.');
+            }
+            if(data.newPassword != data.confirmPassword){
+                throw new Error('New Password and Confirm Password does not match.');
+            }
+
+            user.password = data.newPassword;
+            await user.save();
+
+            return user;
+        } catch (error) {
+            console.log('Update Password Service Error');
             throw error;
         }
     }

@@ -17,7 +17,7 @@ class CrudRepository{
         try {
             const result = await this.model.findByIdAndDelete(id, {new : true});
             if(!result){
-                throw new Error('No data is present in the Database');
+                throw new Error('Data not found.');
             }
             return result;
         } catch (error) {
@@ -35,8 +35,6 @@ class CrudRepository{
             throw error;
         }
     }
-
-    
 
     async getAll(){
         try {
