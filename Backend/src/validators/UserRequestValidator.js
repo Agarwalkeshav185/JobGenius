@@ -5,13 +5,6 @@ export const validateUserRegistration = (body) => {
             return `Field '${field}' is required.`;
         }
     }
-
-    if (body.role === 'Job Seeker') {
-        if (!body.firstNiche || !body.secondNiche || !body.thirdNiche) {
-            return 'Please provide your preferred job niches.';
-        }
-    }
-
     return null;
 };
 

@@ -2,6 +2,7 @@ import UserRepository from '../repositories/user-repository.js';
 import { uploadResumeToCloudinary } from '../utils/cloudinaryUpload.js';
 import { ErrorHandler } from '../middlewares/error-middlewares.js';
 import cloudinary from 'cloudinary';
+import { sendVerificationEmail } from '../utils/emailUtils.js';
 
 class UserService{
     constructor(){
@@ -19,23 +20,27 @@ class UserService{
                 phoneNumber : data.phoneNumber, 
                 address : data.address, 
                 password : data.password, 
-                role : data.role, 
-                niches : {
-                    firstNiche : data.firstNiche,
-                    secondNiche : data.secondNiche,
-                    thirdNiche : data.thirdNiche
-                }, 
+                role : data.role,  
                 coverLetter : data.coverLetter
             }
 
             if(resumeFile){
-                    try {
-                        const resume = await uploadResumeToCloudinary(resumeFile);
-                        userData.resume = resume;
-                    } catch (error) {
-                        return next(new ErrorHandler('Failed to upload Resume', 500));
-                    }
-                } 
+                try {
+                    const resume = await uploadResumeToCloudinary(resumeFile);
+                    userData.resume = resume;
+                } catch (error) {
+                    throw new ErrorHandler('Failed to upload Resume', 500);
+                }
+            }
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const otpExpires = Date.now() + 1000 * 60 * 10; // 10 minutes expiry
+
+            userData.emailVerificationOTP = otp;
+            userData.emailVerificationOTPExpires = otpExpires;
+            userData.emailVerified = false;
+
+            sendVerificationEmail(userData.email, userData.emailVerificationOTP);
+
             const user = await this.userRepository.create(userData);
             return user;
 
@@ -45,18 +50,32 @@ class UserService{
         }
     }
 
+    async verifyEmailOTP(email, otp) {
+        console.log(otp);
+        const user = await this.userRepository.getByEmail(email);
+        if (!user) throw new Error("User not found");
+        if (user.emailVerified) throw new Error("Email already verified");
+        if (user.emailVerificationOTPExpires < Date.now()) throw new Error("OTP expired");
+        if (user.emailVerificationOTP !== otp) throw new Error("Invalid OTP");
+        
+        user.emailVerified = true;
+        user.emailVerificationOTP = undefined;
+        user.emailVerificationOTPExpires = undefined;
+        await user.save();
+
+        return user;
+    }
+
     async loginUser({role, email, password}){
         try {
             const user = await this.userRepository.getByEmailWithPassword(email);
             if(!user){
-                throw new Error('Invalid email or password.');
-                return next(new ErrorHandler('Invalid email or password.', 400));
+                return new ErrorHandler('Invalid email.', 400);
             }
 
             const isPasswordMatched = await user.comparePassword(password);
             if(!isPasswordMatched || user.role != role){
-                throw new Error('Invalid email or password.');
-                return next(new ErrorHandler('Invalid email or password.', 400));
+                return new ErrorHandler('Invalid password.', 400);
             }
             return user;
         } catch (error) {
@@ -83,13 +102,6 @@ class UserService{
             if(data.phoneNumber) userNewData.phoneNumber = data.phoneNumber;
             if(data.address) userNewData.address = data.address;
             if(data.coverLetter) userNewData.coverLetter = data.coverLetter;
-            userNewData.niches = {};
-            if(data.firstNiche) userNewData.niches.firstNiche = data.firstNiche;
-            if(data.secondNiche) userNewData.niches.secondNiche = data.secondNiche;
-            if(data.thirdNiche) userNewData.niches.thirdNiche = data.thirdNiche;
-            if(user.role == 'Job Seeker' && (!userNewData.niches.firstNiche || !userNewData.niches.secondNiche || !userNewData.niches.thirdNiche)){
-                throw new Error('Please provide your all perferred job niches.');
-            }
 
             if(resumeFile){
                 const currentResumeId = user.resume?.public_id;

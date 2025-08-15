@@ -24,11 +24,6 @@ const userSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-    niches : {
-        firstNiche : String,  
-        secondNiche : String,
-        thirdNiche : String
-    },
     password : {
         type : String, 
         required : true,
@@ -45,8 +40,18 @@ const userSchema = new mongoose.Schema({
     },
     role : {
         type : String,
-        enum : ['Job Seeker', 'Employer'],
+        enum : ['Job Seeker', 'Employer', 'Admin'],
         required : true,
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationOTP: {
+        type: String
+    },
+    emailVerificationOTPExpires: {
+        type: Date
     }
 }, {timestamps : true});
 userSchema.pre('save', function(next){

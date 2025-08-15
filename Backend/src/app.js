@@ -10,7 +10,7 @@ const app = express();
 
 app.use(cors({
     origin : [FRONTEND_URL],
-    methods : ['GET', 'POST', 'PUT', 'DELETE'],
+    methods : ['GET', 'POST', 'PUT','PATCH', 'DELETE', 'OPTIONS'],
     credentials : true
 }));
 

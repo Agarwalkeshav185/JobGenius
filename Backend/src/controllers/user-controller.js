@@ -12,7 +12,20 @@ const register = catchAsynErrors(async (req, res, next) => {
 
     const user = await userService.signup(req.body, req.files?.resume);
 
-    sendToken(user, 201, res , 'User Registered.');
+    res.status(201).json({
+        success: true,
+        message: 'User registered. Please verify your email.',
+        user: { email: user.email }
+    });
+});
+
+const verifyEmailOTP = catchAsynErrors(async (req, res, next) => {
+    const {email, otp} = req.body;
+    if(!email || !otp){
+        return next(new ErrorHandler('Email and OTP are required.', 400));
+    }
+    const user = await userService.verifyEmailOTP(email, otp);
+    sendToken(user, 200, res, 'Email verified successfully');
 });
 
 
@@ -25,15 +38,13 @@ const loginUser = catchAsynErrors(async (req, res, next) => {
             );
         }
         const user = await userService.loginUser({ role, email, password });
-        sendToken(user, 200, res, 'User Logged in Successfully');
+        sendToken(user, 200, res, `User Logged in Successfully`);
     } catch (error) {
-        return res.status(400).json({
+        return res.status(error.statusCode).json({
             success : false,
             message : error.message
-        })
-        
+        });
     }
-    
 });
 
 const logout = catchAsynErrors(async (req, res, next)=>{
@@ -102,6 +113,7 @@ export {
     logout,
     getUser,
     updateProfile,
-    updatePassword
+    updatePassword,
+    verifyEmailOTP
 
 }
