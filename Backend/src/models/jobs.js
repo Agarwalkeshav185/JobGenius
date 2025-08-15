@@ -45,8 +45,8 @@ const jobSchema = new mongoose.Schema({
         title : String,
         url : String
     },
-    jobNiche : {
-        type : String,
+    categoryId : {
+        type : mongoose.Schema.Types.ObjectId,
         required : true
     },
     newsLetterSend : {

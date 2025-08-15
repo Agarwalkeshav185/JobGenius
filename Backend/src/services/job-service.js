@@ -29,6 +29,7 @@ class JobService{
             if (jobType) query.jobType = jobType;
             if (city) query.location = { $regex: city, $options: 'i' };
             if (jobNiche) query.jobNiche = { $regex: jobNiche, $options: 'i' };
+            // unable to serach with a part of the comapny name aaege se h to ho rha h search but koi part se nhi ho rha h.
             if(searchKeyword) query.$or = [ 
                 {title : { $regex: searchKeyword, $options: 'i' }},
                 {comapnyName : { $regex: searchKeyword, $options: 'i' }},

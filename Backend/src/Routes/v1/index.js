@@ -4,6 +4,7 @@ import {isAuthenticated, isAuthorized} from '../../middlewares/auth-middleware.j
 import {postJob, getASingleJob, getAllJobs, getMyJobs, deleteJob} from '../../controllers/job-controller.js';
 import { postApplication } from '../../controllers/application-controller.js';
 import Category from './categoryRoutes.js';
+import Company from './comapnyRoutes.js';
 
 const router = express.Router();
 router.post('/user/register', register);
@@ -23,5 +24,6 @@ router.get('/job/get/:id', isAuthenticated, getASingleJob);
 router.post('/applications/post/:id', isAuthenticated, isAuthorized('Job Seeker'), postApplication);
 
 router.use('/category', Category);
+router.use('/company', Company);
 
 export default router;

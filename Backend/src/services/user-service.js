@@ -3,6 +3,7 @@ import { uploadResumeToCloudinary } from '../utils/cloudinaryUpload.js';
 import { ErrorHandler } from '../middlewares/error-middlewares.js';
 import cloudinary from 'cloudinary';
 import { sendVerificationEmail } from '../utils/emailUtils.js';
+import Company from '../models/company.js';
 
 class UserService{
     constructor(){
@@ -21,7 +22,7 @@ class UserService{
                 address : data.address, 
                 password : data.password, 
                 role : data.role,  
-                coverLetter : data.coverLetter
+                coverLetter : data.coverLetter,
             }
 
             if(resumeFile){
@@ -32,6 +33,12 @@ class UserService{
                     throw new ErrorHandler('Failed to upload Resume', 500);
                 }
             }
+
+            if (data.role === "Employer" && data.companyName) {
+                const company = await Company.findOne({ name: data.companyName });
+                userData.companyId = company ? company._id : null;
+            }
+            
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             const otpExpires = Date.now() + 1000 * 60 * 10; // 10 minutes expiry
 
@@ -42,6 +49,12 @@ class UserService{
             sendVerificationEmail(userData.email, userData.emailVerificationOTP);
 
             const user = await this.userRepository.create(userData);
+
+            if(data.role === "Employer" && data.companyName){
+                const company = await Company.findOne({ name: data.companyName });
+                company.employees.push(user._id);
+                await company.save();
+            }
             return user;
 
         } catch (error) {
