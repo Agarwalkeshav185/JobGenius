@@ -1,13 +1,31 @@
 import { ErrorHandler } from '../middlewares/error-middlewares.js';
 import JobRepository from '../repositories/job-repository.js';
+import Company from '../models/company.js';
+import Category from '../models/category.js';
 
-class JobService{
-    constructor(){
+class JobService {
+    constructor() {
         this.jobRepository = new JobRepository();
     }
 
-    async postJob(data){
+    async postJob(data) {
         try {
+            const company = await Company.findOne({
+                name: { $regex: `^${data.companyName}$`, $options: "i" }
+            });
+            if(!company){
+                throw new ErrorHandler('Company not found.', 404);
+            }
+            data.companyId = company._id;
+
+            const category = await Category.findOne({
+                name: { $regex: `^${data.categoryName}$`, $options: "i" }
+            });
+            if(!category){
+                throw new ErrorHandler('Category not found.', 404);
+            }
+            data.categoryId = category._id;
+            
             const job = await this.jobRepository.create(data);
             return job;
         } catch (error) {
@@ -16,35 +34,38 @@ class JobService{
         }
     }
 
-    async getAllJobs(data){
+    async getAllJobs(data) {
         try {
             const {
                 jobType,
                 city,
                 jobNiche,
-                searchKeyword
-              } = data;
-            
+                searchKeyword,
+                categoryId,
+                companyId
+            } = data;
+
             const query = {};
             if (jobType) query.jobType = jobType;
             if (city) query.location = { $regex: city, $options: 'i' };
             if (jobNiche) query.jobNiche = { $regex: jobNiche, $options: 'i' };
-            // unable to serach with a part of the comapny name aaege se h to ho rha h search but koi part se nhi ho rha h.
-            if(searchKeyword) query.$or = [ 
-                {title : { $regex: searchKeyword, $options: 'i' }},
-                {comapnyName : { $regex: searchKeyword, $options: 'i' }},
-                {introduction : { $regex: searchKeyword, $options: 'i' }}
-                ]
+            if (categoryId) query.categoryId = categoryId;
+            if (companyId) query.companyId = companyId;
+            if (searchKeyword) query.$or = [
+                { title: { $regex: searchKeyword, $options: 'i' } },
+                { companyName: { $regex: searchKeyword, $options: 'i' } },
+                { introduction: { $regex: searchKeyword, $options: 'i' } }
+            ];
 
-            const job = await this.jobRepository.getByFilter(query);
-            return job;
+            const jobs = await this.jobRepository.getByFilter(query);
+            return jobs;
         } catch (error) {
             console.log('getAllJobs Service Error.');
             throw error;
         }
     }
 
-    async getMyJobs(id){
+    async getMyJobs(id) {
         try {
             const jobs = await this.jobRepository.getMyJobs(id);
             return jobs;
@@ -54,12 +75,11 @@ class JobService{
         }
     }
 
-    async deleteJob(id, userId){
+    async deleteJob(id, userId) {
         try {
-            
             const deletedJob = await this.jobRepository.deleteJob(id, userId);
-            if(!deletedJob){
-                throw new Error('Oops! Job not found.');
+            if (!deletedJob) {
+                throw new ErrorHandler('Oops! Job not found.', 404);
             }
             return deletedJob;
         } catch (error) {
@@ -68,19 +88,18 @@ class JobService{
         }
     }
 
-    async getASingleJob(id){
+    async getASingleJob(id) {
         try {
-            const Job = await this.jobRepository.get(id);
-            if(!Job){
-                throw new Error('Job not found.');
+            const job = await this.jobRepository.get(id);
+            if (!job) {
+                throw new ErrorHandler('Job not found.', 404);
             }
-            return Job;
+            return job;
         } catch (error) {
             console.log('getASingleJob Service Error.');
             throw error;
         }
     }
 }
-
 
 export default JobService;

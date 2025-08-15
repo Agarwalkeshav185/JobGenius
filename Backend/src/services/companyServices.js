@@ -5,7 +5,8 @@ import Category from "../models/category.js";
 export const createCompany = async (data) => {
     try {
         if (data.category) {
-            const category = await Category.findOne({ name: data.category });
+            const category = await Category.findOne({ 
+                name: { $regex: `^${data.category}$`, $options: "i" } });
             data.category = category ? category._id : null;
         }
         return await Company.create(data);

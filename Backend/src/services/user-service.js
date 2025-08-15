@@ -35,7 +35,7 @@ class UserService{
             }
 
             if (data.role === "Employer" && data.companyName) {
-                const company = await Company.findOne({ name: data.companyName });
+                const company = await Company.findOne({ name: { $regex: `^${data.companyName}$`, $options: "i" } });
                 userData.companyId = company ? company._id : null;
             }
             
@@ -51,7 +51,7 @@ class UserService{
             const user = await this.userRepository.create(userData);
 
             if(data.role === "Employer" && data.companyName){
-                const company = await Company.findOne({ name: data.companyName });
+                const company = await Company.findOne({ name: { $regex: `^${data.companyName}$`, $options: "i" } });
                 company.employees.push(user._id);
                 await company.save();
             }

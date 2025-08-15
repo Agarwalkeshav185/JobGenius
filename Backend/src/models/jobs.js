@@ -14,10 +14,6 @@ const jobSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-    companyName : {
-        type : String, 
-        required : true
-    },
     introduction : {
         type : String
     },
@@ -47,7 +43,13 @@ const jobSchema = new mongoose.Schema({
     },
     categoryId : {
         type : mongoose.Schema.Types.ObjectId,
+        ref : 'Category',
         required : true
+    },
+    companyId : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: true
     },
     newsLetterSend : {
         type : Boolean,

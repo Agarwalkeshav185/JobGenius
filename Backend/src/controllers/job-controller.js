@@ -16,7 +16,7 @@ const postJob = catchAsynErrors(async(req, res, next)=>{
             hirihngMultipleCandidates,
             personalWebsiteTitle,
             personalWebsiteUrl,
-            jobNiche,
+            categoryName
         } = req.body;
 
         if(!title || !jobType || !location || !companyName||
@@ -24,7 +24,7 @@ const postJob = catchAsynErrors(async(req, res, next)=>{
             !responsibilites||
             !qualifications||
             !salary||
-            !jobNiche){
+            !categoryName){
                 return res.status(400).json({
                     success: false,
                     message : 'Please provide full job details.'
@@ -33,8 +33,11 @@ const postJob = catchAsynErrors(async(req, res, next)=>{
         if((personalWebsiteTitle && !personalWebsiteUrl) || (!personalWebsiteTitle && personalWebsiteUrl)){
             return res.status(400).json({
                 success: false,
-                message : 'Please either provide the title and url of the website together or leave them blank together'});
+                message : 'Please either provide the title and url of the website together or leave them blank together'
+            });
         }
+
+        
 
         const postedBy = req.user.id;
 
@@ -50,8 +53,8 @@ const postJob = catchAsynErrors(async(req, res, next)=>{
                 title : personalWebsiteTitle,
                 url : personalWebsiteUrl
             },
-            jobNiche,
-            postedBy
+            postedBy,
+            categoryName
         });
 
         return res.status(200).json({
