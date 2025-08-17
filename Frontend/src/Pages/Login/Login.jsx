@@ -1,5 +1,5 @@
 import React from "react";
-import LoginImage from "../../assets/Login1.png";
+import LoginImage from "../../assets/Login.png";
 import { FaEnvelope, FaKey, FaGoogle, FaFacebookF } from "react-icons/fa";
 
 const Login = () => {
@@ -14,7 +14,6 @@ const Login = () => {
             <input
               type="email"
               placeholder="Your email"
-              // style={{ paddingLeft: '2rem' }}
               className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#14b8a6] text-sm md:text-base"
             />
           </div>
@@ -23,7 +22,6 @@ const Login = () => {
             <input
               type="password"
               placeholder="Password"
-              style={{ paddingLeft: '2rem' }}
               className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm md:text-base"
             />
           </div>

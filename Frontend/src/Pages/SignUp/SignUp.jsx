@@ -1,5 +1,5 @@
 import React, {useState } from "react";
-import SignUpImage from '../../assets/SignU2.jpg';
+import SignUpImage from '../../assets/SignUp.jpg';
 import { FaEnvelope, FaKey, FaGoogle, FaFacebookF, FaUser, FaChevronDown } from "react-icons/fa";
 
 const SignUp = () => {
