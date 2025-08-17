@@ -56,16 +56,21 @@ function Header() {
             
 
             {/* Hamburger Icon (Mobile) */}
-            <div className="md:hidden z-50" onClick={() => setIsOpen(!isOpen)}>
+            <div className="md:hidden z-9999 relative cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
             </div>
 
             {/* Mobile Menu */}
-            <ul
-              className={`fixed top-0 right-0 w-2/3 h-full bg-gray-800 p-6 transition-transform duration-300 ease-in-out ${
-                isOpen ? "translate-x-0" : "translate-x-full"
-              } md:hidden`}
-            >
+            {isOpen && (
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50 z-9999 md:hidden"
+                onClick={() => setIsOpen(false)}
+              >
+                <ul
+                  className={`fixed top-0 right-0 w-2/3 h-full bg-gray-800 p-6 transition-transform duration-300 ease-in-out ${
+                    isOpen ? "translate-x-0" : "translate-x-full"
+                  } md:hidden`}
+                >
               <li className="py-4 border-b border-gray-600 hover:text-teal-400 cursor-pointer">
                 <Link to="/" className="font-medium">
                   Home
@@ -87,12 +92,14 @@ function Header() {
                 </Link>
               </li>
               <li className="py-4 border-b border-gray-600 hover:text-teal-400 cursor-pointer">
-                <Link to="/signup" className="font-medium">
+                <Link to="/register" className="font-medium">
                   Login/Signup
                 </Link>
               </li>
 
             </ul>
+            </div>
+            )}
           </nav>
         </div>
       </section>

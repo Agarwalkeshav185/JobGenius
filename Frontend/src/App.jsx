@@ -4,7 +4,7 @@ import HomePage from "./Pages/HomePage"
 import ContactUsPage from "./Pages/ContactUs"
 import Login from "./Pages/Login/Login"
 import SignUp from "./Pages/SignUp/SignUp";
-// import JobsPage from "./Pages/Jobs"
+import JobBoardPage from "./Pages/Jobs"
 import "./App.css"
 
 
@@ -15,7 +15,7 @@ function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/jobs" element={<div>Jobs Page</div>} />
+          <Route path="/jobs" element={<JobBoardPage />} />
           <Route path="/about" element={<div>About Page</div>} />
           <Route path="/contact" element={ <ContactUsPage /> } />
           <Route path ="/login" element  = { <Login /> } />
