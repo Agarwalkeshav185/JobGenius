@@ -83,12 +83,16 @@ class UserService{
         try {
             const user = await this.userRepository.getByEmailWithPassword(email);
             if(!user){
-                return new ErrorHandler('Invalid email.', 400);
+                throw new ErrorHandler('Invalid email.', 400);
             }
 
             const isPasswordMatched = await user.comparePassword(password);
             if(!isPasswordMatched || user.role != role){
-                return new ErrorHandler('Invalid password.', 400);
+                throw new ErrorHandler('Invalid password.', 400);
+            }
+
+            if(!user.emailVerified){
+                throw new ErrorHandler('Please verify your email before logging in.', 400);
             }
             return user;
         } catch (error) {

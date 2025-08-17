@@ -8,7 +8,6 @@ import { Textarea } from "../Components/UI/Textarea"
 export default function ContactUsPage() {
   return (
     <>
-      <Header />
       <main>
         {/* Hero Section */}
         <div className="bg-black text-white py-12 text-center">
@@ -194,7 +193,6 @@ export default function ContactUsPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   )
 }

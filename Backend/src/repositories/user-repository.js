@@ -7,7 +7,7 @@ class UserRepository extends CrudRepository{
 
     async getByEmail(email){
         try {
-            const result = await this.model.findOne({email});
+            const result = await this.model.findOne({email: { $regex: `${email}`, $options: "i" }});
             return result;
         } catch (error) {
             console.log('User Repository Error');
@@ -17,7 +17,7 @@ class UserRepository extends CrudRepository{
 
     async getByEmailWithPassword(email){
         try {
-            const result = await this.model.findOne({email}).select('+password');
+            const result = await this.model.findOne({ email: { $regex: `${email}`, $options: "i" } }).select('+password');
             return result;
         } catch (error) {
             console.log('User Repository Error');

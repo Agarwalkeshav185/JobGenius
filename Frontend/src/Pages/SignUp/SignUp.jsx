@@ -1,20 +1,68 @@
 import React, {useState } from "react";
 import SignUpImage from '../../assets/SignUp.jpg';
+import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaKey, FaGoogle, FaFacebookF, FaUser, FaChevronDown } from "react-icons/fa";
 
 const SignUp = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const roles = [
-    { value: "jobseeker", label: "Job Seeker" },
-    { value: "employer", label: "Employer" }
+    { value: "Job Seeker", label: "Job Seeker" },
+    { value: "Employer", label: "Employer" }
   ];
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role.value);
     setIsDropdownOpen(false);
   };
+  const handleSubmit = (e) =>{
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if(password !== repeatPassword){
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    if (!email || !password || !selectedRole) {
+      setError("Please fill in all fields");
+      setLoading(false);
+      return;
+    }
+
+    try{
+      const signUpData = {
+        email,
+        password,
+        repeatPassword,
+        role: selectedRole
+      }
+
+      // Navigate to additional info page with state
+      navigate('/additionalDetails', { 
+        state: { 
+          basicData: signUpData 
+        } 
+      });
+
+    }catch (err){
+      setError(err.message);
+      setLoading(false);
+    }
+    finally{
+      setLoading(false);
+    }
+
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row w-full bg-cover">
@@ -36,12 +84,20 @@ const SignUp = () => {
       {/* Right Side - Sign Up Form */}
       <div className="flex flex-col justify-center items-center px-4 py-8 sm:px-8 md:px-20 md:w-1/2 bg-white">
         <h2 className="text-2xl md:text-3xl font-semibold mb-8">Sign Up</h2>
-        <form className="w-full max-w-md space-y-4">
+        {error && (
+          <div className="w-full max-w-md mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
           <div className="relative">
             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
               type="email"
               placeholder="Your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#14b8a6] text-sm md:text-base"
             />
           </div>
@@ -50,7 +106,9 @@ const SignUp = () => {
             <input
               type="password"
               placeholder="Password"
-              style={{ paddingLeft: '2rem' }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm md:text-base"
             />
           </div>
@@ -59,7 +117,9 @@ const SignUp = () => {
             <input
               type="password"
               placeholder="Repeat Password"
-              style={{ paddingLeft: '2rem' }}
+              value={repeatPassword}
+              onChange={(e) => setRepeatPassword(e.target.value)}
+              required
               className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm md:text-base"
             />
           </div>
@@ -98,9 +158,10 @@ const SignUp = () => {
           </div>
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-[#14b8a6] text-white py-2 rounded-md font-semibold hover:bg-blue-700 transition text-sm md:text-base"
           >
-            Log In
+            {loading ? "Processing..." : "Continue"} {/* Changed button text */}
           </button>
           <div className="flex items-center my-4">
             <hr className="flex-grow border-gray-300" />

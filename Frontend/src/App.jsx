@@ -4,7 +4,9 @@ import HomePage from "./Pages/HomePage"
 import ContactUsPage from "./Pages/ContactUs"
 import Login from "./Pages/Login/Login"
 import SignUp from "./Pages/SignUp/SignUp";
-import JobBoardPage from "./Pages/Jobs"
+import JobBoardPage from "./Pages/Jobs";
+import AdditionalDetails from "./Pages/SignUp/additionalDetails";
+import VerifyEmail from "./Pages/SignUp/verifyEmail";
 import "./App.css"
 
 
@@ -20,6 +22,8 @@ function App() {
           <Route path="/contact" element={ <ContactUsPage /> } />
           <Route path ="/login" element  = { <Login /> } />
           <Route path="/register" element={<SignUp />} />
+            <Route path="/additionalDetails" element={<AdditionalDetails />} />
+            <Route path="/verifyEmail" element={<VerifyEmail />} />
           {/* Add other routes here */}
         </Route>
       </Routes>

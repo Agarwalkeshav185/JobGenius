@@ -17,12 +17,15 @@ const userSchema = new mongoose.Schema({
         validate : [validator.isEmail, 'Please Provide Valid Email']
     },
     phoneNumber : {
-        type : Number,
-        required : true
+        type : String,
+        required : true,
+        minLength: [10, 'Phone number must be at least 10 digits'],
     },
     address : {
         type : String,
-        required : true
+        required: function() {
+            return this.role === 'jobseeker'; // Only required for job seekers
+        }
     },
     password : {
         type : String, 
