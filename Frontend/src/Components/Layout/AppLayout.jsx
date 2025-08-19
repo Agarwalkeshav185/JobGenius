@@ -5,9 +5,7 @@ import { Outlet } from "react-router-dom";
 const AppLayout = () => (
   <>
     <Header />
-    <main>
-      <Outlet />
-    </main>
+    <Outlet />
     <Footer />
   </>
 );
