@@ -100,6 +100,19 @@ class JobService {
             throw error;
         }
     }
+
+    async getRecentJobs(limit = 6) {
+        try {
+            const jobs = await this.jobRepository.getRecentJobs(limit);
+            if (!jobs || jobs.length === 0) {
+                throw new ErrorHandler('No recent jobs found.', 404);
+            }
+            return jobs;
+        } catch (error) {
+            console.log('getRecentJobs Service Error.');
+            throw error;
+        }
+    }
 }
 
 export default JobService;

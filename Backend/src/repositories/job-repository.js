@@ -38,6 +38,26 @@ class JobRepository extends CrudRepository{
             throw error;
         }
     }
+
+    async getRecentJobs(limit = 6){
+        try {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            const jobs = await Job.find({
+                createdAt: { $gte: thirtyDaysAgo }
+            })
+            .populate('companyId', 'name logo')
+            .populate('categoryId', 'name')
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit));
+            
+            return jobs;
+        } catch (error) {
+            console.log('Job Repository Error');
+            throw error;
+        }
+    }
     
 }
 

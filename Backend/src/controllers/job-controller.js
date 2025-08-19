@@ -165,11 +165,34 @@ const getASingleJob = catchAsynErrors(async(req, res, next)=>{
     }
 });
 
+const getRecentJobs = catchAsynErrors(async(req, res, next)=>{
+    try{
+        const { limit = 6 } = req.query; // Allow frontend to specify how many recent jobs to fetch
+        const jobs = await jobService.getRecentJobs(limit);
+        return res.status(200).json({
+            success : true,
+            message : 'Successfully fetched recent jobs.',
+            data : jobs,
+            count: jobs.length
+        });
+    } catch (error) {
+        console.log('Get Recent Jobs Controller Error');
+        var statusCode = 500;
+        if(error.message == 'No recent jobs found.'){
+            statusCode = 404;
+        }
+        return res.status(statusCode).json({
+            success : false,
+            message : error.message
+        });
+    }
+});
+
 export {
     postJob,
     getAllJobs,
     getMyJobs,
     deleteJob,
     getASingleJob,
-
+    getRecentJobs
 }
