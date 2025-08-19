@@ -38,10 +38,10 @@ const Login = () => {
       if (user.role === 'Employer') {
         navigate('/dashboard/employer');
       } else if (user.role === 'Job Seeker') {
-        navigate('/dashboard');
+        navigate('/dashboard/jobseeker');
       } else {
         // Default fallback
-        navigate('/dashboard');
+        navigate('/dashboard/jobseeker');
       }
     }
   }, [isAuthenticated, loading, user, navigate]);
