@@ -9,7 +9,7 @@ export const sendToken = async(user, statusCode, res, message)=>{
         };
         return res.status(statusCode).cookie('token', token , options).json({
             success: true, 
-            data : user,
+            user,
             message : message,
             token : token
         });

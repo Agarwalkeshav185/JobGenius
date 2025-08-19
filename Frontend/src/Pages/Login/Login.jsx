@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LoginImage from "../../assets/Login.png";
 import { FaEnvelope, FaKey, FaGoogle, FaFacebookF, FaUser, FaChevronDown } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import authService from "../../Services/authServices";
+import { useAuth } from "../../Context/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,30 +11,72 @@ const Login = () => {
 
   const [selectedRole, setSelectedRole] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  
+  const [success, setSuccess] = useState("");
+
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated, loading, user } = useAuth();
 
   const roles = [
     { value: "Job Seeker", label: "Job Seeker" },
     { value: "Employer", label: "Employer" }
   ];
 
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccess(location.state.message);
+    }
+    if (location.state?.email) {
+      setEmail(location.state.email);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (isAuthenticated && !loading && user) {
+      if (user.role === 'Employer') {
+        navigate('/dashboard/employer');
+      } else if (user.role === 'Job Seeker') {
+        navigate('/dashboard');
+      } else {
+        // Default fallback
+        navigate('/dashboard');
+      }
+    }
+  }, [isAuthenticated, loading, user, navigate]);
+
+  // ✅ LOADING STATE: Show loading while checking auth status
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#14b8a6]"></div>
+      </div>
+    );
+  }
+
   const handleRoleSelect = (role) => {
     setSelectedRole(role.value);
     setIsDropdownOpen(false);
+    setError(""); // Clear any previous errors
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSuccess("");
+    setIsLoading(true);
 
     // Validation
     if (!email || !password || !selectedRole) {
       setError("Please fill in all fields");
-      setLoading(false);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address");
+      setIsLoading(false);
       return;
     }
 
@@ -44,31 +87,39 @@ const Login = () => {
         role: selectedRole
       };
     const response = await authService.login(loginData);
+    console.log(response);
 
       if (response.success) {
         // Store user data
-        localStorage.setItem('token', response.token);
-        
-          // Navigate based on role
-          if (selectedRole === 'Employer') {
-            navigate('/employer-dashboard');
-          } else {
-            navigate('/job-seeker-dashboard');
-          }
-        }
-      } catch (err) {
+        console.log('User data:', response.user);
+        console.log('Token:', response.token);
+        login(response.user, response.token);
+        setSuccess("Login successful! Redirecting...");
+  
+      }
+    } catch (err) {
         setError(err.message || 'Login failed. Please try again.');
         console.error('Login error:', err);
-      } finally {
-        setLoading(false);
+    } finally {
+        setIsLoading(false);
       }
-    };
+  };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row w-full bg-cover">
       {/* Left Side - Login Form */}
       <div className="flex flex-col justify-center items-center px-4 py-8 sm:px-8 md:px-20 md:w-1/2 bg-white relative z-0">
         <h2 className="text-2xl md:text-3xl font-semibold mb-8">Log In</h2>
+        {success && (
+          <div className="w-full max-w-md p-3 mb-4 bg-green-100 border border-green-400 text-green-700 rounded">
+            {success}
+          </div>
+        )}
+        {error && (
+          <div className="w-full max-w-md p-3 mb-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
           <div className="relative z-0">
             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -76,7 +127,10 @@ const Login = () => {
               type="email"
               placeholder="Your email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                setError(""); // Clear error on input change
+              }}
               required
               className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#14b8a6] text-sm md:text-base relative z-0"
             />
@@ -87,9 +141,12 @@ const Login = () => {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setError(""); // Clear error on input change
+              }}
               required
-              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm md:text-base"
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#14b8a6] text-sm md:text-base"
             />
           </div>
           {/* Role Selection Dropdown */}
@@ -127,15 +184,15 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-[#14b8a6] text-white py-2 rounded-md font-semibold hover:bg-blue-700 transition text-sm md:text-base"
+            disabled={isLoading}
+            className="w-full bg-[#14b8a6] text-white py-2 rounded-md font-semibold hover:bg-blue-600 transition text-sm md:text-base"
           >
-            {loading ? 'Logging in...' : 'Log In'}
+            {isLoading ? 'Logging in...' : 'Log In'}
           </button>
           <div className="text-right">
-            <a href="#" className="text-[#14b8a6] text-sm hover:underline">
+            <Link to="/forgot-password" className="text-[#14b8a6] text-sm hover:underline">
               Forgot password?
-            </a>
+            </Link>
           </div>
           <div className="flex items-center my-4">
             <hr className="flex-grow border-gray-300" />
@@ -160,9 +217,9 @@ const Login = () => {
           </div>
           <p className="text-gray-600 text-sm mt-6 text-center md:text-left">
             Don’t have an account?{" "}
-            <a href="/register" className="text-[#14b8a6] font-semibold hover:underline">
+            <Link to="/register" className="text-[#14b8a6] font-semibold hover:underline">
               Sign Up
-            </a>
+            </Link>
           </p>
         </form>
       </div>

@@ -37,7 +37,7 @@ const loginUser = catchAsynErrors(async (req, res, next) => {
                 new ErrorHandler('Email, Password and Role are required.', 400)
             );
         }
-        const user = await userService.loginUser({ role, email, password });
+        const user = await userService.loginUser({ role, email, password }); 
         sendToken(user, 200, res, `User Logged in Successfully`);
     } catch (error) {
         return res.status(error.statusCode).json({
