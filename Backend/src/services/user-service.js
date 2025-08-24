@@ -52,7 +52,12 @@ class UserService{
 
             if(data.role === "Employer" && data.companyName){
                 const company = await Company.findOne({ name: { $regex: `^${data.companyName}$`, $options: "i" } });
-                company.employees.push(user._id);
+
+                if(company == null) {
+                   throw new ErrorHandler('Company not found', 404);
+                } else {
+                    company.employees.push(user._id);
+                }
                 await company.save();
             }
             return user;

@@ -13,11 +13,44 @@ export const createCategory = async (data) => {
     
 };
 
-export const getAllCategories = async () => {
-    try{
-        return await Category.find();
-    }
-    catch(err){
+export const getAllCategories = async (options = {}) => {
+    try {
+        if (options.page && options.limit) {
+            // Pagination requested
+            const page = options.page;
+            const limit = options.limit;
+            const skip = (page - 1) * limit;
+            
+            const totalCategories = await Category.countDocuments();
+            const categories = await Category.find()
+                .skip(skip)
+                .limit(limit)
+                .sort({ name: 1 }); // Sort by name alphabetically
+                
+            const totalPages = Math.ceil(totalCategories / limit);
+            
+            return {
+                success: true,
+                categories,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalItems: totalCategories,
+                    itemsPerPage: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                }
+            };
+        } else {
+            // No pagination - return all categories
+            const categories = await Category.find().sort({ name: 1 });
+            return {
+                success: true,
+                data: categories,
+                count: categories.length
+            };
+        }
+    } catch (err) {
         throw new Error(err);
     }
 };

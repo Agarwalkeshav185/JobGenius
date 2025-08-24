@@ -18,8 +18,12 @@ export const create = async (req, res) => {
 
 export const getAll = async (req, res) => {
     try {
-        const categories = await getAllCategories();
-        res.json(categories);
+        const { page = 1, limit = 10 } = req.query;
+        const result = await getAllCategories({
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+        res.json(result);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
