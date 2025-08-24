@@ -4,6 +4,7 @@ import * as categoryController from "../../controllers/categoryController.js";
 const router = express.Router();
 
 router.get("/getAll", categoryController.getAll);
+router.get("/getAllJobCount", categoryController.getAllWithActiveJobCount);
 router.get("/:id", categoryController.getById);
 
 // Admin Routes

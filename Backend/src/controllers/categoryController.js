@@ -61,8 +61,18 @@ export const remove = async (req, res) => {
 
 export const getAllWithActiveJobCount = async (req, res) => {
     try {
-        const categories = await getCategoriesWithActiveJobCount();
-        res.json(categories);
+        const { page, limit } = req.query;
+        const options = {};
+        
+        // Only add pagination if both page and limit are provided
+        if (page && limit) {
+            options.page = parseInt(page);
+            options.limit = parseInt(limit);
+        }
+        const categories = await getCategoriesWithActiveJobCount(options);
+        res.status(200).json(
+            categories
+        );
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

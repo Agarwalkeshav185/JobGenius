@@ -64,36 +64,86 @@ export const getCategoryById = async (id) => {
     }
 };
 
-export const getCategoriesWithActiveJobCount = async () => {
-    const result = await Category.aggregate([
-        {
-            $lookup: {
-                from: "jobs",
-                let: { categoryId: "$_id" },
-                pipeline: [
-                    { $match: { $expr: { $and: [
-                        { $eq: ["$category", "$$categoryId"] },
-                        { $eq: ["$is_active", true] }
-                    ]}}},
-                ],
-                as: "activeJobs"
-            }
-        },
-        {
-            $addFields: {
-                jobCount: { $size: "$activeJobs" }
-            }
-        },
-        {
-            $project: {
-                _id: 1,
-                icon: 1,
-                name: 1,
-                jobCount: 1
-            }
+export const getCategoriesWithActiveJobCount = async (options = {}) => {
+    try {
+        const { page, limit } = options;
+        
+        // Base aggregation pipeline
+        const pipeline = [
+            {
+                $lookup: {
+                    from: "jobs",
+                    let: { categoryId: "$_id" },
+                    pipeline: [
+                        { $match: { $expr: { $and: [
+                            { $eq: ["$categoryId", "$$categoryId"] },
+                            { $eq: ["$is_active", true] }
+                        ]}}},
+                    ],
+                    as: "activeJobs"
+                }
+            },
+            {
+                $addFields: {
+                    jobCount: { $size: "$activeJobs" }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    icon: 1,
+                    name: 1,
+                    jobCount: 1
+                }
+            },
+            { $sort: { jobCount: -1 } } // Sort by job count descending
+        ];
+
+        if (page && limit) {
+            // Add pagination using $facet to get both data and count in single query
+            pipeline.push({
+                $facet: {
+                    data: [
+                        { $skip: (page - 1) * limit },
+                        { $limit: limit }
+                    ],
+                    totalCount: [
+                        { $count: "count" }
+                    ]
+                }
+            });
+
+            const result = await Category.aggregate(pipeline);
+            const categories = result[0].data;
+            const totalCount = result[0].totalCount[0]?.count || 0;
+            const totalPages = Math.ceil(totalCount / limit);
+
+            return {
+                success: true,
+                data: categories,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalItems: totalCount,
+                    itemsPerPage: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                }
+            };
+        } else {
+            // No pagination - return all categories but limit to 50 for scalability
+            pipeline.push({ $limit: 50 });
+            const categories = await Category.aggregate(pipeline);
+            
+            return {
+                success: true,
+                data: categories,
+                count: categories.length
+            };
         }
-    ]);
-    return result;
+    } catch (err) {
+        throw new Error(err);
+    }
 };
 
 export const updateCategory = async (id, data) => {

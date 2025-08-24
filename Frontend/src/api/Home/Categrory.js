@@ -3,7 +3,7 @@ import axiosInstance from "../axiosInstance";
 
 export async function fetchCategory(page, limit) {
     try {
-        const response = await axiosInstance.get("/category/getAll",
+        const response = await axiosInstance.get("/category/getAllJobCount",
             {
                 params : {page, limit}
             }

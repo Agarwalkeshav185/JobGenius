@@ -11,7 +11,7 @@ const CategorySection = () =>{
     try{
       const fetchCategories = async () => {
         const data = await fetchCategory(categoryPage, categoryLimit);
-        setCategories(data.categories);
+        setCategories(data.data);
       };
       fetchCategories();
     }
