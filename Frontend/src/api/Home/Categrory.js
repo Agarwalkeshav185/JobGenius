@@ -8,7 +8,6 @@ export async function fetchCategory(page, limit) {
                 params : {page, limit}
             }
         );
-        console.log(response.data.data);
         return response.data;
     } catch (error) {
         console.error("Error fetching categories:", error);

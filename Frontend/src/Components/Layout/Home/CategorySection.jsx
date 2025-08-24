@@ -1,15 +1,17 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import CategoryCard from "../../Cards/CategoryCard";
 import { fetchCategory } from "../../../api/Home/Categrory";
 
 const CategorySection = () =>{
-  const [categories, setCategories] = React.useState([]);
+  const [categories, setCategories] = useState([]);
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [categoryLimit, setCategoryLimit] = useState(8);
 
   useEffect(() => {
     try{
       const fetchCategories = async () => {
-        const data = await fetchCategory();
-        setCategories(data);
+        const data = await fetchCategory(categoryPage, categoryLimit);
+        setCategories(data.categories);
       };
       fetchCategories();
     }
