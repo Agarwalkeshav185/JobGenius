@@ -4,7 +4,10 @@ import Footer from "../Components/Layout/Footer"
 import { Input } from "../Components/UI/Input"
 import { Button } from "../Components/UI/Button"
 import { Textarea } from "../Components/UI/Textarea"
-
+import Zoom from "../assets/ContactUsLogos/zoom.svg";
+import Tinder from "../assets/ContactUsLogos/tinder.svg";
+import Asana from "../assets/ContactUsLogos/asana.svg";
+import Dribble from "../assets/ContactUsLogos/dribble.svg";
 export default function ContactUsPage() {
   return (
     <>
@@ -21,8 +24,7 @@ export default function ContactUsPage() {
             <div>
               <h2 className="text-3xl font-bold mb-6">You Will Grow, You Will Succeed. We Promise That</h2>
               <p className="text-gray-600 mb-10">
-                Pellentesque arcu facilisis nunc mi proin. Dignissim mattis in lectus tincidunt tincidunt ultricies.
-                Diam convallis morbi pellentesque adipiscing
+                We are here to help you with your job search and recruitment needs. Get in touch with us anytime during our working hours.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -46,7 +48,7 @@ export default function ContactUsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Call for inquiry</h3>
-                    <p className="text-gray-600">+257 388-6895</p>
+                    <p className="text-gray-600">+91 70175 40010</p>
                   </div>
                 </div>
 
@@ -71,7 +73,7 @@ export default function ContactUsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Send us email</h3>
-                    <p className="text-gray-600">kramulous@sbcglobal.net</p>
+                    <p className="text-gray-600">keshav9927.work@gmail.com</p>
                   </div>
                 </div>
 
@@ -96,7 +98,7 @@ export default function ContactUsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Opening hours</h3>
-                    <p className="text-gray-600">Mon - Fri: 10AM - 10PM</p>
+                    <p className="text-gray-600">Mon - Fri: 10AM - 6PM</p>
                   </div>
                 </div>
 
@@ -121,7 +123,8 @@ export default function ContactUsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Office</h3>
-                    <p className="text-gray-600">19 North Road Piscataway, NY 08854</p>
+                    <p className="text-gray-600"> IIIT Una,
+                              Una, <br /> Himachal Pradesh</p>
                   </div>
                 </div>
               </div>
@@ -130,7 +133,7 @@ export default function ContactUsPage() {
             {/* Right Column - Contact Form */}
             <div className="bg-gray-50 p-8 rounded-lg">
               <h3 className="text-xl font-bold mb-6">Contact Info</h3>
-              <p className="text-gray-600 mb-6">Nibh dis faucibus proin locus tristique</p>
+              <p className="text-gray-600 mb-6">Have questions or need support? Reach out to us, and our team will get back to you shortly.</p>
 
               <form className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -170,25 +173,25 @@ export default function ContactUsPage() {
           {/* Map Section */}
           <div className="mt-16">
             <div className="h-[400px] w-full rounded-lg overflow-hidden">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d48371.66637238489!2d-73.85549418402536!3d40.75891874834012!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c260af260fe8b7%3A0x8b7d1b258d6ddf33!2sForest%20Hills%2C%20Queens%2C%20NY%2C%20USA!5e0!3m2!1sen!2s!4v1712851600000!5m2!1sen!2s"
-                width="100%"
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d17270.05890681099!2d76.19966723184875!3d31.478716187920362!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391adb5aa39796f9%3A0x3d5e714694324768!2sIIIT%20Una%2C%20Academic%20Block!5e0!3m2!1sen!2sus!4v1755668376475!5m2!1sen!2sus" 
+                width="100%" 
                 height="100%"
                 style={{ border: 0 }}
                 allowFullScreen=""
                 loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+                referrerPolicy="no-referrer-when-downgrade">
+              </iframe>
             </div>
           </div>
 
           {/* Clients/Partners Section */}
           <div className="mt-16">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center opacity-50">
-              <img src="/placeholder.svg?height=40&width=120" alt="Zoom" width={120} height={40} />
-              <img src="/placeholder.svg?height=40&width=120" alt="Tinder" width={120} height={40} />
-              <img src="/placeholder.svg?height=40&width=120" alt="Dribbble" width={120} height={40} />
-              <img src="/placeholder.svg?height=40&width=120" alt="Asana" width={120} height={40} />
+              <img src={`${Zoom}`} alt="Zoom" width={120} height={40} />
+              <img src={`${Tinder}`} alt="Tinder" width={120} height={40} />
+              <img src={`${Dribble}`} alt="Dribbble" width={120} height={40} />
+              <img src={`${Asana}`} alt="Asana" width={120} height={40} />
             </div>
           </div>
         </div>

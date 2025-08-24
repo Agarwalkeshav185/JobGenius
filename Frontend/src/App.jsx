@@ -13,6 +13,7 @@ import SavedJobs from "./Pages/Dashboard/SavedJobs";
 import JobSeekerProfile from "./Pages/Dashboard/JobSeekerProfile";
 import JobAlerts from "./Pages/Dashboard/JobAlerts";
 import JobSeekerSettings from "./Pages/Dashboard/JobSeekerSettings";
+import AboutUsPage from "./Pages/AboutUs/AboutUs.jsx";
 import JobSeekerDrawer from './Components/materialUi/JobSeekerDrawer.jsx';
 // import EmployerDashboard from "./Pages/Dashboard/EmployerDashboard";
 import { AuthProvider } from "./Context/AuthContext";
@@ -28,7 +29,7 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/jobs" element={<JobBoardPage />} />
-            <Route path="/about" element={<div>About Page</div>} />
+            <Route path="/about" element={<AboutUsPage />} />
             <Route path="/contact" element={ <ContactUsPage /> } />
             <Route path ="/login" element  = { <Login /> } />
             <Route path="/register" element={<SignUp />} />
