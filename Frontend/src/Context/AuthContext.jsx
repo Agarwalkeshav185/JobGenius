@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const response = await authService.getUser(); // API call to get user data
-          console.log(response);
           setUser(response.user);
           setIsAuthenticated(true);
         } catch (error) {
@@ -56,7 +55,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       setIsAuthenticated(true);
       localStorage.setItem('authToken', token);
-      console.log('User logged in successfully:', userData);
+      // console.log('User logged in successfully:', userData);
     } catch (error) {
       console.error('Error during login:', error);
     }
@@ -68,7 +67,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
       localStorage.removeItem('authToken');
-      console.log('User logged out successfully');
+      // console.log('User logged out successfully');
     } catch (error) {
       console.error('Error during logout:', error);
     }

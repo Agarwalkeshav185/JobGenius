@@ -1,6 +1,7 @@
 import Company from "../models/company.js";
 import { ErrorHandler } from "../middlewares/error-middlewares.js";
 import Category from "../models/category.js";
+import mongoose from "mongoose";
 
 export const createCompany = async (data) => {
     try {
@@ -25,7 +26,8 @@ export const getAllCompanies = async () => {
 
 export const getCompanyById = async (id) => {
     try {
-        const company = await Company.findById(id);
+        id = new mongoose.Types.ObjectId(id);
+        const company = await Company.findById(id).populate('category','name');
         if (!company) throw new ErrorHandler("Company not found", 404);
         return company;
     } catch (err) {

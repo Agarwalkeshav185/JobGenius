@@ -6,6 +6,16 @@ const companySchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    email:{
+        type: String,
+        // required: true,
+        unique: true
+    },
+    phone:{
+        type: String,
+        // required: true,
+        unique: true
+    },
     description: String,
     website: String,
     location: String,
@@ -20,6 +30,14 @@ const companySchema = new mongoose.Schema({
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category'
+    },
+    foundedYear : {
+        type : String,
+    },
+    social : {
+        linkedin : String,
+        facebook : String,
+        twitter : String,
     }
 
 }, {timestamps: true});

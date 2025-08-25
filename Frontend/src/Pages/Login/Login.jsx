@@ -21,7 +21,8 @@ const Login = () => {
 
   const roles = [
     { value: "Job Seeker", label: "Job Seeker" },
-    { value: "Employer", label: "Employer" }
+    { value: "Employer", label: "Employer" },
+    { value: "Manager", label: "Manager" }
   ];
 
   useEffect(() => {
@@ -35,7 +36,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated && !loading && user) {
-      if (user.role === 'Employer') {
+      if (user.role === 'Employer' || user.role === 'Manager') {
         navigate('/dashboard/employer');
       } else if (user.role === 'Job Seeker') {
         navigate('/dashboard/jobseeker');

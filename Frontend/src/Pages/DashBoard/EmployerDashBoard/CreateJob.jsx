@@ -20,7 +20,7 @@ const jobTypes = ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Temporary
 const categories = ['Engineering', 'Design', 'Product', 'Marketing', 'Sales', 'HR', 'Other'];
 
 const CreateJob = () => {
-  const { user, isEmployer } = useAuth();
+  const { user, isJobSeeker } = useAuth();
   const [job, setJob] = useState(initialJob);
   const [requirementsList, setRequirementsList] = useState([]);
   const [requirementInput, setRequirementInput] = useState('');
@@ -31,8 +31,8 @@ const CreateJob = () => {
   const [offersList, setOffersList] = useState([]);
   const [offerInput, setOfferInput] = useState('');
 
-  if (!isEmployer()) {
-    return <div>Access Denied. Only Employer can post the jobs.</div>;
+  if (isJobSeeker() || !user) {
+    return <div>Access Denied. Only Employer and Manager can post the jobs.</div>;
   }
 
   // Handle input change
@@ -184,15 +184,20 @@ const CreateJob = () => {
               placeholder="e.g. San Francisco, CA"
             />
           </div>
-          <div className="flex items-center mt-6 md:mt-0">
-            <input
-              type="checkbox"
-              name="remote"
-              checked={job.remote}
-              onChange={handleChange}
-              className="mr-2"
-            />
-            <label className="text-sm text-gray-700">Remote</label>
+          {/* Hiring Multiple Candidates */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Hiring Multiple Candidates?</label>
+            <button
+              type="button"
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                hiringMultiple
+                  ? 'bg-teal-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-teal-50'
+              }`}
+              onClick={() => setHiringMultiple((prev) => !prev)}
+            >
+              {hiringMultiple ? 'Yes' : 'No'}
+            </button>
           </div>
         </div>
 
@@ -401,23 +406,6 @@ const CreateJob = () => {
             </div>
           )}
         </div>
-
-        {/* Hiring Multiple Candidates */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Hiring Multiple Candidates?</label>
-          <button
-            type="button"
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              hiringMultiple
-                ? 'bg-teal-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-teal-50'
-            }`}
-            onClick={() => setHiringMultiple((prev) => !prev)}
-          >
-            {hiringMultiple ? 'Yes' : 'No'}
-          </button>
-        </div>
-
         {/* Submit Button */}
         <div>
           <button

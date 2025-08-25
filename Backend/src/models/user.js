@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema({
     },
     role : {
         type : String,
-        enum : ['Job Seeker', 'Employer', 'Admin'],
+        enum : ['Job Seeker', 'Employer', 'Admin', 'Manager'],
         required : true,
     },
     emailVerified: {

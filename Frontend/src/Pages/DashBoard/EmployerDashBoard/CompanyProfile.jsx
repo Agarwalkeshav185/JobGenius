@@ -1,31 +1,77 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
+import EmployerServices from '../../../Services/EmployerServices';
+import { useAuth } from '../../../Context/AuthContext';
+import UrlInput from '../../../Components/UI/UrlInput';
 
-// Example company data (replace with backend data or context)
 const initialCompany = {
-  name: "Tech Corp",
+  name: "Company Name",
   logo: "",
-  description: "Tech Corp is a leading provider of innovative software solutions for businesses worldwide.",
-  industry: "Information Technology",
-  website: "https://techcorp.com",
-  email: "contact@techcorp.com",
-  phone: "+1 555-123-4567",
-  address: "123 Silicon Valley, San Francisco, CA",
-  founded: "2012",
-  size: "201-500",
+  description: "No description available",
+  category: { name: "Not specified" },
+  website: "",
+  email: "",
+  phone: "",
+  location: "",
+  founded: "",
+  size: "",
   social: {
-    linkedin: "https://linkedin.com/company/techcorp",
-    twitter: "https://twitter.com/techcorp",
-    facebook: "https://facebook.com/techcorp"
+    linkedin: "",
+    twitter: "",
+    facebook: ""
   }
 };
 
-// Simulate user role (replace with context or props)
-const userRole = "admin"; // "admin" can edit, "employee" cannot
-
 const CompanyProfile = () => {
+  const { user } = useAuth();
   const [company, setCompany] = useState(initialCompany);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState(company);
+  const [form, setForm] = useState(initialCompany);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const getCompany = async () => {
+      try {
+        const companyId = user?.companyId?._id || user?.companyId;
+        
+        if (!companyId) {
+          console.warn('No company ID found for user');
+          setError('No company associated with this user');
+          setLoading(false);
+          return;
+        }
+        // console.log('Fetching company with ID:', companyId);
+        const data = await EmployerServices.getCompanyById(companyId);
+        // console.log("API Response:", data);
+        
+        const companyData = data.company || data;
+        
+        // Ensure all expected fields exist
+        const processedCompanyData = {
+          ...initialCompany,
+          ...companyData, // Override with actual initial data
+          social: {
+            ...initialCompany.social,
+            ...(companyData.social || {})
+          }
+        };
+        
+        setCompany(processedCompanyData);
+        setForm(processedCompanyData);
+        setError(null);
+      } catch (error) {
+        console.error("Error fetching company data:", error);
+        console.error("Error details:", error.response?.data);
+        setError("Failed to load company data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      getCompany();
+    }
+  }, [user]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -36,7 +82,7 @@ const CompanyProfile = () => {
     }));
   };
 
-  // Handle social links
+  // Handle social links with safe checks
   const handleSocialChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({
@@ -48,12 +94,27 @@ const CompanyProfile = () => {
     }));
   };
 
-  // Save changes (simulate backend update)
+  // Save changes
   const handleSave = (e) => {
     e.preventDefault();
     setCompany(form);
     setEditing(false);
-    // TODO: Send updated data to backend if needed
+    const updateCompany = async () => {
+      try {
+        const companyId = user?.companyId?._id || user?.companyId;
+        if (!companyId) {
+          console.warn('No company ID found for user');
+          setError('No company associated with this user');
+          return;
+        }
+        const response = await EmployerServices.updateCompanyDetails(companyId, form);
+        // console.log("Update Response:", response);
+      } catch (error) {
+        console.error("Error updating company data:", error);
+        setError("Failed to update company data");
+      }
+    };
+    updateCompany();
   };
 
   // Cancel editing
@@ -62,27 +123,73 @@ const CompanyProfile = () => {
     setEditing(false);
   };
 
+  // Safe access to company data
+  const safeName = company?.name || "Company Name";
+  const safeIndustry = company?.category?.name || company?.industry || "Not specified";
+  const safeDescription = company?.description || "No description available";
+  const safeEmail = company?.email || "Not provided";
+  const safePhone = company?.phone || "Not provided";
+  const safeWebsite = company?.website || "Not provided";
+  const safeAddress = company?.location || company?.address || "Not provided";
+  const safeFounded = company?.founded || "Not specified";
+  const safeSize = company?.size || "Not specified";
+  
+  // Safe social media access
+  const safeSocial = company?.social || {};
+  const hasLinkedIn = safeSocial.linkedin && safeSocial.linkedin.trim() !== '';
+  const hasTwitter = safeSocial.twitter && safeSocial.twitter.trim() !== '';
+  const hasFacebook = safeSocial.facebook && safeSocial.facebook.trim() !== '';
+  const hasSocialMedia = hasLinkedIn || hasTwitter || hasFacebook;
+
+  // Safe logo rendering
+  const renderLogo = () => {
+    if (company?.logo) {
+      // Handle both string and object logo formats
+      const logoUrl = typeof company.logo === 'string' ? company.logo : company.logo?.url;
+      if (logoUrl) {
+        return <img src={logoUrl} alt="Company Logo" className="w-32 h-32 rounded-full object-cover border" />;
+      }
+    }
+    return (
+      <div className="w-32 h-32 rounded-full bg-teal-100 flex items-center justify-center text-4xl font-bold text-teal-700 border">
+        {safeName[0] || 'C'}
+      </div>
+    );
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 my-10">
+        <div className="text-center">Loading company profile...</div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 my-10">
+        <div className="text-center text-red-600">{error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 my-10">
       <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
         <div className="flex-shrink-0">
-          {company.logo ? (
-            <img src={company.logo} alt="Company Logo" className="w-32 h-32 rounded-full object-cover border" />
-          ) : (
-            <div className="w-32 h-32 rounded-full bg-teal-100 flex items-center justify-center text-4xl font-bold text-teal-700 border">
-              {company.name[0]}
-            </div>
-          )}
+          {renderLogo()}
         </div>
         <div>
-          <h1 className="text-3xl font-extrabold text-teal-700 mb-2">{company.name}</h1>
-          <p className="text-gray-600 mb-2">{company.industry}</p>
-          <p className="text-gray-500">{company.description}</p>
+          <h1 className="text-3xl font-extrabold text-teal-700 mb-2">{safeName}</h1>
+          <p className="text-gray-600 mb-2">{safeIndustry}</p>
+          <p className="text-gray-500">{safeDescription}</p>
         </div>
       </div>
 
       {/* Only show edit button for admin/owner */}
-      {userRole === "admin" && !editing && (
+      {(user?.role === "Manager" || user?.role === "Admin") && !editing && (
         <div className="mb-6 text-right">
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
@@ -101,32 +208,24 @@ const CompanyProfile = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea
                 name="description"
-                value={form.description}
+                value={form.description || ''}
                 onChange={handleChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-              <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Industry</label>
-              <input
-                type="text"
-                name="industry"
-                value={form.industry}
-                onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
               <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Website</label>
               <input
                 type="url"
                 name="website"
-                value={form.website}
+                value={form.website || ''}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
               <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Address</label>
               <input
                 type="text"
-                name="address"
-                value={form.address}
+                name="location" // Changed to match backend field
+                value={form.location || ''}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
@@ -136,7 +235,7 @@ const CompanyProfile = () => {
               <input
                 type="email"
                 name="email"
-                value={form.email}
+                value={form.email || ''}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
@@ -144,7 +243,7 @@ const CompanyProfile = () => {
               <input
                 type="text"
                 name="phone"
-                value={form.phone}
+                value={form.phone || ''}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
@@ -152,7 +251,7 @@ const CompanyProfile = () => {
               <input
                 type="text"
                 name="founded"
-                value={form.founded}
+                value={form.founded || ''}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
@@ -160,41 +259,37 @@ const CompanyProfile = () => {
               <input
                 type="text"
                 name="size"
-                value={form.size}
+                value={form.size || ''}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
           </div>
+          
           <div>
             <h2 className="text-lg font-semibold text-gray-700 mb-2">Social Links</h2>
             <div className="flex gap-4">
-              <input
-                type="url"
-                name="linkedin"
-                value={form.social.linkedin}
+              <UrlInput
+                name='linkedin'
+                value={form.social?.linkedin}
                 onChange={handleSocialChange}
                 placeholder="LinkedIn"
-                className="px-3 py-2 border border-gray-300 rounded-lg w-1/3"
               />
-              <input
-                type="url"
-                name="twitter"
-                value={form.social.twitter}
+              <UrlInput
+                name='twitter'
+                value={form.social?.twitter}
                 onChange={handleSocialChange}
                 placeholder="Twitter"
-                className="px-3 py-2 border border-gray-300 rounded-lg w-1/3"
               />
-              <input
-                type="url"
-                name="facebook"
-                value={form.social.facebook}
+              <UrlInput
+                name='facebook'
+                value={form.social?.facebook}
                 onChange={handleSocialChange}
                 placeholder="Facebook"
-                className="px-3 py-2 border border-gray-300 rounded-lg w-1/3"
               />
             </div>
           </div>
+          
           <div className="flex gap-4 mt-6">
             <button
               type="submit"
@@ -216,38 +311,56 @@ const CompanyProfile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div>
               <h2 className="text-lg font-semibold text-gray-700 mb-2">Contact Info</h2>
-              <div className="text-gray-600 mb-1"><span className="font-medium">Email:</span> {company.email}</div>
-              <div className="text-gray-600 mb-1"><span className="font-medium">Phone:</span> {company.phone}</div>
-              <div className="text-gray-600 mb-1"><span className="font-medium">Website:</span> <a href={company.website} className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer">{company.website}</a></div>
-              <div className="text-gray-600 mb-1"><span className="font-medium">Address:</span> {company.address}</div>
+              <div className="text-gray-600 mb-1"><span className="font-medium">Email:</span> {safeEmail}</div>
+              <div className="text-gray-600 mb-1"><span className="font-medium">Phone:</span> {safePhone}</div>
+              <div className="text-gray-600 mb-1">
+                <span className="font-medium">Website:</span> 
+                {safeWebsite !== "Not provided" ? (
+                  <a href={safeWebsite} className="text-teal-600 hover:underline ml-1" target="_blank" rel="noopener noreferrer">
+                    {safeWebsite}
+                  </a>
+                ) : (
+                  <span className="ml-1">{safeWebsite}</span>
+                )}
+              </div>
+              <div className="text-gray-600 mb-1"><span className="font-medium">Address:</span> {safeAddress}</div>
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-700 mb-2">Company Details</h2>
-              <div className="text-gray-600 mb-1"><span className="font-medium">Founded:</span> {company.founded}</div>
-              <div className="text-gray-600 mb-1"><span className="font-medium">Company Size:</span> {company.size} employees</div>
-              <div className="text-gray-600 mb-1"><span className="font-medium">Industry:</span> {company.industry}</div>
+              <div className="text-gray-600 mb-1"><span className="font-medium">Founded:</span> {safeFounded}</div>
+              <div className="text-gray-600 mb-1"><span className="font-medium">Company Size:</span> {safeSize} employees</div>
+              <div className="text-gray-600 mb-1"><span className="font-medium">Industry:</span> {safeIndustry}</div>
             </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-700 mb-2">Social Links</h2>
-            <div className="flex gap-4">
-              {company.social.linkedin && (
-                <a href={company.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">
-                  LinkedIn
-                </a>
-              )}
-              {company.social.twitter && (
-                <a href={company.social.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                  Twitter
-                </a>
-              )}
-              {company.social.facebook && (
-                <a href={company.social.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                  Facebook
-                </a>
-              )}
+          
+          {/* Social Links Section */}
+          {hasSocialMedia ? (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-700 mb-2">Social Links</h2>
+              <div className="flex gap-4">
+                {hasLinkedIn && (
+                  <a href={safeSocial.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">
+                    LinkedIn
+                  </a>
+                )}
+                {hasTwitter && (
+                  <a href={safeSocial.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                    Twitter
+                  </a>
+                )}
+                {hasFacebook && (
+                  <a href={safeSocial.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    Facebook
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-700 mb-2">Social Links</h2>
+              <p className="text-gray-500">No social media links available.</p>
+            </div>
+          )}
         </>
       )}
     </div>
