@@ -1,8 +1,7 @@
 import express from 'express';
 import { logout, loginUser, register, getUser, updateProfile, updatePassword, verifyEmailOTP } from '../../controllers/user-controller.js';
-import {isAuthenticated, isAuthorized} from '../../middlewares/auth-middleware.js';
-import {postJob, getASingleJob, getAllJobs, getMyJobs, deleteJob, getRecentJobs} from '../../controllers/job-controller.js';
 import { postApplication } from '../../controllers/application-controller.js';
+import Job from './jobRoutes.js';
 import Category from './categoryRoutes.js';
 import Company from './comapnyRoutes.js';
 import statsRoutes from './statsRoutes.js';
@@ -16,12 +15,7 @@ router.put('/user/update/profile', isAuthenticated, updateProfile);
 router.put('/user/update/password', isAuthenticated, updatePassword);
 router.post('/user/verifyEmail', verifyEmailOTP);
 
-router.post('/job/post',isAuthenticated, isAuthorized('Employer'), postJob);
-router.get('/job/getall', getAllJobs);
-router.get('/job/recent', getRecentJobs); // No authentication needed for homepage
-router.get('/job/getmyjobs', isAuthenticated, isAuthorized('Employer'), getMyJobs);
-router.delete('/job/delete/:id', isAuthenticated, isAuthorized('Employer'), deleteJob);
-router.get('/job/get/:id', isAuthenticated, getASingleJob);
+router.use('/job', Job);
 
 router.post('/applications/post/:id', isAuthenticated, isAuthorized('Job Seeker'), postApplication);
 

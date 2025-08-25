@@ -9,50 +9,43 @@ const postJob = catchAsynErrors(async(req, res, next)=>{
         const {
             title,  jobType,    location,    companyName,
             introduction,
-            responsibilites,
+            responsibilities,
             qualifications,
             offers,
-            salary,
-            hirihngMultipleCandidates,
-            personalWebsiteTitle,
-            personalWebsiteUrl,
+            minSalary,
+            maxSalary,
+            jobPostDeadline,
+            hiringMultipleCandidates,
             categoryName
         } = req.body;
 
         if(!title || !jobType || !location || !companyName||
             !introduction||
-            !responsibilites||
+            !responsibilities||
             !qualifications||
-            !salary||
+            !minSalary||
+            !maxSalary||
+            !jobPostDeadline||
+            !hiringMultipleCandidates||
             !categoryName){
-                return res.status(400).json({
+            return res.status(400).json({
                     success: false,
                     message : 'Please provide full job details.'
-                });
-            }
-        if((personalWebsiteTitle && !personalWebsiteUrl) || (!personalWebsiteTitle && personalWebsiteUrl)){
-            return res.status(400).json({
-                success: false,
-                message : 'Please either provide the title and url of the website together or leave them blank together'
             });
         }
-
-        
 
         const postedBy = req.user.id;
 
         const job = await jobService.postJob({
             title,  jobType,    location,    companyName,
             introduction,
-            responsibilites,
+            responsibilities,
             qualifications,
             offers,
-            salary,
-            hirihngMultipleCandidates,
-            personalWebsite : {
-                title : personalWebsiteTitle,
-                url : personalWebsiteUrl
-            },
+            minSalary,
+            maxSalary,
+            jobPostDeadline,
+            hiringMultipleCandidates,
             postedBy,
             categoryName
         });

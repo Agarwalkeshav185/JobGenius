@@ -5,59 +5,61 @@ const jobSchema = new mongoose.Schema({
         type: String,
         required : true
     },
-    jobType : {
-        type : String,
-        required : true,
-        enum : ['Full-Time', 'Part-Time', 'Remote']
-    },
-    location : {
-        type : String,
-        required : true
-    },
-    introduction : {
-        type : String
-    },
-    responsibilites : {
-        type : String ,
-        required : true
-    },
-    qualifications : {
-        type : String,
-        required : true
-    },
-    offers: {
-        type : String
-    },
-    salary : {
-        type : String,
-        required : true
-    },
-    hirihngMultipleCandidates : {
-        type : String,
-        default : 'No',
-        enum : ['Yes', 'No']    
-    },
-    personalWebsite : {
-        title : String,
-        url : String
+    companyId : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: true
     },
     categoryId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Category',
         required : true
     },
-    companyId : {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Company',
-        required: true
+    location : {
+        type : String,
+        required : true
     },
-    newsLetterSend : {
-        type : Boolean,
-        default : false
+    jobType : {
+        type : String,
+        required : true,
+        enum : ['Full-Time', 'Part-Time', 'Remote','Contract', 'Internship']
     },
-    jobPostOn : {
+    status :{
+        type: String,
+        required: true,
+        default : 'Open',
+        enum: ['Open', 'Closed', 'Draft','Paused']
+    },
+    minSalary : {
+        type : Number,
+        required : true
+    },
+    maxSalary : {
+        type : Number,
+        required : true
+    },
+    jobPostDeadline : {
         type : Date,
-        default : Date.now()
+        required : true
+    },
+    introduction : {
+        type : String
+    },
+    responsibilities : [{
+        type : String ,
+        required : true
+    }],
+    qualifications : [{
+        type : String,
+        required : true
+    }],
+    offers: [{
+        type : String
+    }],
+    hiringMultipleCandidates : {
+        type : String,
+        default : 'No',
+        enum : ['Yes', 'No']    
     },
     postedBy : {
         type : mongoose.Schema.Types.ObjectId,
