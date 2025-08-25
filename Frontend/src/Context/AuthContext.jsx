@@ -96,12 +96,12 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is job seeker
   const isJobSeeker = () => {
-    return user?.role === 'jobseeker';
+    return user?.role === 'Job Seeker';
   };
 
   // Check if user is employer
   const isEmployer = () => {
-    return user?.role === 'employer';
+    return user?.role === 'Employer';
   };
 
   const contextValue = {

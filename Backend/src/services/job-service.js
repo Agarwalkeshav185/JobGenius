@@ -2,34 +2,51 @@ import { ErrorHandler } from '../middlewares/error-middlewares.js';
 import JobRepository from '../repositories/job-repository.js';
 import Company from '../models/company.js';
 import Category from '../models/category.js';
+import mongoose from 'mongoose'; // Fix import
 
 class JobService {
     constructor() {
         this.jobRepository = new JobRepository();
     }
 
-    async postJob(data) {
+    async postJob(data, userId) {
         try {
-            const company = await Company.findOne({
-                name: { $regex: `^${data.companyName}$`, $options: "i" }
-            });
-            if(!company){
-                throw new ErrorHandler('Company not found.', 404);
+            if(!data.companyId && data.companyName){
+                const company = await Company.findOne({
+                    name: { $regex: `^${data.companyName}$`, $options: "i" }
+                });
+                if(!company){
+                    throw new ErrorHandler('Company not found.', 404);
+                }
+                data.companyId = new mongoose.Types.ObjectId(company._id);
+            } else if(data.companyId) {
+                // Convert existing companyId to ObjectId if it's a string
+                data.companyId = new mongoose.Types.ObjectId(data.companyId);
             }
-            data.companyId = company._id;
 
-            const category = await Category.findOne({
-                name: { $regex: `^${data.categoryName}$`, $options: "i" }
-            });
-            if(!category){
-                throw new ErrorHandler('Category not found.', 404);
+            // Handle category lookup
+            if(!data.categoryId && data.categoryName){
+                const category = await Category.findOne({
+                    name: { $regex: `^${data.categoryName}$`, $options: "i" }
+                });
+                if(!category){
+                    throw new ErrorHandler('Category not found.', 404);
+                }
+                data.categoryId = new mongoose.Types.ObjectId(category._id);
+            } else if(data.categoryId) {
+                data.categoryId = new mongoose.Types.ObjectId(data.categoryId);
             }
-            data.categoryId = category._id;
+
+            data.postedBy = new mongoose.Types.ObjectId(userId);
+
+            // Remove the name fields since we now have IDs
+            delete data.companyName;
+            delete data.categoryName;
             
             const job = await this.jobRepository.create(data);
             return job;
         } catch (error) {
-            console.log('PostJob Service Error.');
+            console.log('PostJob Service Error:', error.message);
             throw error;
         }
     }

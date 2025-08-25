@@ -17,7 +17,7 @@ class UserRepository extends CrudRepository{
 
     async getByEmailWithPassword(email){
         try {
-            const result = await this.model.findOne({ email: { $regex: `${email}`, $options: "i" } }).select('+password');
+            const result = await this.model.findOne({ email: { $regex: `${email}`, $options: "i" } }).select('+password').populate('companyId', 'name');
             return result;
         } catch (error) {
             console.log('User Repository Error');

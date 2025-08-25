@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import EmployerServices from  "../../../Services/EmployerServices";
+import { useAuth } from '../../../Context/AuthContext';
 
 const initialJob = {
   title: '',
@@ -10,26 +12,28 @@ const initialJob = {
   salaryMax: '',
   category: '',
   company: '',
-  deadline: '',
+  jobPostingDeadline: '',
   remote: false,
 };
-const companies = [
-  "Tech Corp",
-  "InnovateX",
-  "Designify",
-  "MarketHub",
-  "SalesForce",
-  "HR Solutions"
-];
 
-const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Temporary'];
+const jobTypes = ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Temporary', 'Remote'];
 const categories = ['Engineering', 'Design', 'Product', 'Marketing', 'Sales', 'HR', 'Other'];
 
 const CreateJob = () => {
+  const { user, isEmployer } = useAuth();
   const [job, setJob] = useState(initialJob);
   const [requirementsList, setRequirementsList] = useState([]);
   const [requirementInput, setRequirementInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [hiringMultiple, setHiringMultiple] = useState(false);
+  const [responsibilitiesList, setResponsibilitiesList] = useState([]);
+  const [responsibilityInput, setResponsibilityInput] = useState('');
+  const [offersList, setOffersList] = useState([]);
+  const [offerInput, setOfferInput] = useState('');
+
+  if (!isEmployer()) {
+    return <div>Access Denied. Only Employer can post the jobs.</div>;
+  }
 
   // Handle input change
   const handleChange = (e) => {
@@ -53,23 +57,71 @@ const CreateJob = () => {
     setRequirementsList(prev => prev.filter((_, i) => i !== idx));
   };
 
+  // Add responsibility to list
+  const handleAddResponsibility = () => {
+    if (responsibilityInput.trim()) {
+      setResponsibilitiesList(prev => [...prev, responsibilityInput.trim()]);
+      setResponsibilityInput('');
+    }
+  };
+
+  // Remove responsibility
+  const handleRemoveResponsibility = (idx) => {
+    setResponsibilitiesList(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  // Add offer to list
+  const handleAddOffer = () => {
+    if (offerInput.trim()) {
+      setOffersList(prev => [...prev, offerInput.trim()]);
+      setOfferInput('');
+    }
+  };
+
+  // Remove offer
+  const handleRemoveOffer = (idx) => {
+    setOffersList(prev => prev.filter((_, i) => i !== idx));
+  };
+
   // Submit job (mock)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    // Combine requirements
-    const jobData = { ...job, requirements: requirementsList };
-    // TODO: Send jobData to backend API
-    setTimeout(() => {
+    
+    const jobData = { 
+      title : job.title,
+      companyId : user?.companyId?._id || user?.companyId,
+      categoryName : "Engineering & Manufacturing" || job.category,
+      location : job.location,
+      jobType : job.jobType,
+      minSalary : job.salaryMin,
+      maxSalary : job.salaryMax,
+      jobPostDeadline : job.jobPostingDeadline,
+      introduction : job.description,
+      responsibilities : responsibilitiesList,
+      qualifications : requirementsList,
+      offers: offersList,
+      hiringMultipleCandidates: hiringMultiple ? 'Yes' : 'No'
+    };
+    try {
+      const response = await EmployerServices.createJob(jobData);
       alert('Job posted successfully!');
+    }catch(error){
+      // console.error('Error posting job:', error);
+      // console.error('Full error object:', error);
+      // console.error('Error response:', error.response?.data);
+      // console.error('Error status:', error.response?.status);
+      alert('Failed to post job. Please try again.');
+    }finally {
+      setSubmitting(false);
       setJob(initialJob);
       setRequirementsList([]);
-      setSubmitting(false);
-    }, 1200);
+      setResponsibilitiesList([]);
+      setOffersList([]);
+      setHiringMultiple(false);
+    }
   };
-
-  // Example: get company name from context or props
-  const companyName = "Tech Corp"; // Replace with actual context/prop value
+  const companyName = user?.companyId?.name || user?.companyName || "Company not found";
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-6 my-8">
@@ -196,8 +248,8 @@ const CreateJob = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Application Deadline</label>
           <input
             type="date"
-            name="deadline"
-            value={job.deadline}
+            name="jobPostingDeadline"
+            value={job.jobPostingDeadline}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
@@ -237,7 +289,6 @@ const CreateJob = () => {
               Add
             </button>
           </div>
-          {/* Preview as tick list with remove button */}
           {requirementsList.length > 0 && (
             <div className="mt-2">
               <span className="block text-sm text-gray-500 mb-1">Preview:</span>
@@ -245,7 +296,6 @@ const CreateJob = () => {
                 {requirementsList.map((req, idx) => (
                   <li key={idx} className="flex items-center justify-between mb-1">
                     <span className="flex items-center gap-2">
-                      {/* Tick icon */}
                       <span className="text-green-600 font-bold text-lg">&#10003;</span>
                       {req}
                     </span>
@@ -262,6 +312,110 @@ const CreateJob = () => {
               </ul>
             </div>
           )}
+        </div>
+
+        {/* Responsibilities */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Responsibilities</label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={responsibilityInput}
+              onChange={e => setResponsibilityInput(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+              placeholder="e.g. Build UI components"
+            />
+            <button
+              type="button"
+              onClick={handleAddResponsibility}
+              className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
+            >
+              Add
+            </button>
+          </div>
+          {responsibilitiesList.length > 0 && (
+            <div className="mt-2">
+              <span className="block text-sm text-gray-500 mb-1">Preview:</span>
+              <ul className="text-gray-700">
+                {responsibilitiesList.map((resp, idx) => (
+                  <li key={idx} className="flex items-center justify-between mb-1">
+                    <span className="flex items-center gap-2">
+                      <span className="text-green-600 font-bold text-lg">&#10003;</span>
+                      {resp}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveResponsibility(idx)}
+                      className="ml-2 text-red-500 hover:text-red-700 text-xs"
+                      title="Remove"
+                    >
+                      &times;
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Offers / Perks */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Offers / Perks</label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={offerInput}
+              onChange={e => setOfferInput(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+              placeholder="e.g. Health Insurance, Remote Work, Gym Membership"
+            />
+            <button
+              type="button"
+              onClick={handleAddOffer}
+              className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
+            >
+              Add
+            </button>
+          </div>
+          {offersList.length > 0 && (
+            <div className="mt-2">
+              <span className="block text-sm text-gray-500 mb-1">Preview:</span>
+              <ul className="text-gray-700">
+                {offersList.map((offer, idx) => (
+                  <li key={idx} className="flex items-center justify-between mb-1">
+                    <span className="flex items-center gap-2">
+                      <span className="text-green-600 font-bold text-lg">&#10003;</span>
+                      {offer}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOffer(idx)}
+                      className="ml-2 text-red-500 hover:text-red-700 text-xs"
+                      title="Remove"
+                    >
+                      &times;
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Hiring Multiple Candidates */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Hiring Multiple Candidates?</label>
+          <button
+            type="button"
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              hiringMultiple
+                ? 'bg-teal-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-teal-50'
+            }`}
+            onClick={() => setHiringMultiple((prev) => !prev)}
+          >
+            {hiringMultiple ? 'Yes' : 'No'}
+          </button>
         </div>
 
         {/* Submit Button */}

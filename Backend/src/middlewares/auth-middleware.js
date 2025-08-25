@@ -7,7 +7,13 @@ import UserRepository from "../repositories/user-repository.js";
 const userRepository = new UserRepository();
 
 const isAuthenticated = catchAsynErrors(async(req, res, next)=>{
-    const {token} = req.cookies;
+    let token = req.cookies?.token || req.cookies?.authToken;
+    if(!token) {
+        const authHeader = req.headers.authorization;
+        if(authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        }
+    }
     if(!token){
         return res.status(400).json({
             success : false,

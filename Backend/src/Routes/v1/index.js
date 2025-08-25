@@ -1,5 +1,6 @@
 import express from 'express';
 import { logout, loginUser, register, getUser, updateProfile, updatePassword, verifyEmailOTP } from '../../controllers/user-controller.js';
+import {isAuthenticated, isAuthorized} from '../../middlewares/auth-middleware.js';
 import { postApplication } from '../../controllers/application-controller.js';
 import Job from './jobRoutes.js';
 import Category from './categoryRoutes.js';

@@ -7,7 +7,7 @@ const jobService = new JobService();
 const postJob = catchAsynErrors(async(req, res, next)=>{
     try {
         const {
-            title,  jobType,    location,    companyName,
+            title,  jobType,    location,    companyId,
             introduction,
             responsibilities,
             qualifications,
@@ -19,7 +19,7 @@ const postJob = catchAsynErrors(async(req, res, next)=>{
             categoryName
         } = req.body;
 
-        if(!title || !jobType || !location || !companyName||
+        if(!title || !jobType || !location ||
             !introduction||
             !responsibilities||
             !qualifications||
@@ -37,7 +37,7 @@ const postJob = catchAsynErrors(async(req, res, next)=>{
         const postedBy = req.user.id;
 
         const job = await jobService.postJob({
-            title,  jobType,    location,    companyName,
+            title,  jobType,    location,    companyId,
             introduction,
             responsibilities,
             qualifications,
@@ -46,9 +46,8 @@ const postJob = catchAsynErrors(async(req, res, next)=>{
             maxSalary,
             jobPostDeadline,
             hiringMultipleCandidates,
-            postedBy,
             categoryName
-        });
+        }, req.user._id);
 
         return res.status(200).json({
             success : true, 
