@@ -2,7 +2,6 @@ import Category from "../models/category.js";
 import Job from "../models/jobs.js";
 
 
-
 export const createCategory = async (data) => {
     try{
         return await Category.create(data);
@@ -142,6 +141,45 @@ export const getCategoriesWithActiveJobCount = async (options = {}) => {
             };
         }
     } catch (err) {
+        throw new Error(err);
+    }
+};
+
+export const searchCategories = async (search, options = {})=>{
+    try{
+        const { page, limit } = options;
+        const query = {
+            $or: [
+                { name: { $regex: search, $options: "i" } }
+            ]
+        };
+        if (page && limit) {
+            const categories = await Category.find(query)
+                .skip((page - 1) * limit)
+                .limit(limit);
+            const totalCount = await Category.countDocuments(query);
+            return {
+                success: true,
+                data: categories,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(totalCount / limit),
+                    totalItems: totalCount,
+                    itemsPerPage: limit,
+                    hasNextPage: (page * limit) < totalCount,
+                    hasPrevPage: page > 1
+                }
+            };
+        } else {
+            const categories = await Category.find(query);
+            return {
+                success: true,
+                data: categories,
+                count: categories.length
+            };
+        }
+    }
+    catch(err){
         throw new Error(err);
     }
 };

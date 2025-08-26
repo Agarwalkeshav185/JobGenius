@@ -4,6 +4,7 @@ import {
     getCategoryById,
     updateCategory,
     deleteCategory,
+    searchCategories,
     getCategoriesWithActiveJobCount
 } from "../services/categoryService.js";
 
@@ -73,6 +74,24 @@ export const getAllWithActiveJobCount = async (req, res) => {
         res.status(200).json(
             categories
         );
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const searcHCategories = async (req, res) => {
+    try {
+        const { query, page, limit } = req.query;
+        const options = {};
+
+        // Only add pagination if both page and limit are provided
+        if (page && limit) {
+            options.page = parseInt(page);
+            options.limit = parseInt(limit);
+        }
+        const categories = await searchCategories(query, options);
+        console.log(categories);
+        res.status(200).json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

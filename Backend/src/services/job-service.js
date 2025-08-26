@@ -1,8 +1,8 @@
+import mongoose from 'mongoose'; 
 import { ErrorHandler } from '../middlewares/error-middlewares.js';
 import JobRepository from '../repositories/job-repository.js';
 import Company from '../models/company.js';
 import Category from '../models/category.js';
-import mongoose from 'mongoose'; // Fix import
 
 class JobService {
     constructor() {
@@ -127,6 +127,30 @@ class JobService {
             return jobs;
         } catch (error) {
             console.log('getRecentJobs Service Error.');
+            throw error;
+        }
+    }
+
+    async getJobsByStatus(status, options) {
+        try {
+            const { page = 1, limit = 10 } = options;
+            const jobs = await this.jobRepository.getJobsByStatus(status, page, limit);
+            if (!jobs || jobs.length === 0) {
+                throw new ErrorHandler('No jobs found for this status.', 404);
+            }
+            return jobs;
+        } catch (error) {
+            console.log('getJobsByStatus Service Error.');
+            throw error;
+        }
+    }
+
+    async getPopularCategories() {
+        try {
+            const categories = await this.jobRepository.getPopularCategories();
+            return categories;
+        } catch (error) {
+            console.log('getPopularCategories Service Error.');
             throw error;
         }
     }

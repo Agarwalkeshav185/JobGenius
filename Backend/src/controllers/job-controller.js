@@ -108,8 +108,6 @@ const getMyJobs = catchAsynErrors(async(req, res, next)=>{
     }
 });
 
-
-
 const deleteJob = catchAsynErrors(async(req, res, next)=>{
     try {
         const {id} = req.params;
@@ -133,7 +131,6 @@ const deleteJob = catchAsynErrors(async(req, res, next)=>{
         });
     }
 });
-
 
 const getASingleJob = catchAsynErrors(async(req, res, next)=>{
     try {
@@ -180,11 +177,58 @@ const getRecentJobs = catchAsynErrors(async(req, res, next)=>{
     }
 });
 
+const getJobsByStatus = catchAsynErrors(async (req, res, next) => {
+    try {
+        const { status } = req.params;
+        const {page, limit} = req.query;
+        if (!status) {
+            const jobs = await jobService.getAllJobs({});
+            return res.status(200).json({
+                success: true,
+                message: 'Successfully fetched all jobs.',
+                data: jobs,
+                count: jobs.length
+            });
+        }
+        const jobs = await jobService.getJobsByStatus(status, {page, limit});
+        return res.status(200).json({
+            success: true,
+            message: 'Successfully fetched jobs by status.',
+            data: jobs
+        });
+    } catch (error) {
+        console.log('Get Jobs By Status Controller Error');
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+const getPopularCategories = catchAsynErrors(async (req, res, next) => {
+    try {
+        const categories = await jobService.getPopularCategories();
+        return res.status(200).json({
+            success: true,
+            message: 'Successfully fetched popular categories.',
+            data: categories
+        });
+    } catch (error) {
+        console.log('Get Popular Categories Controller Error');
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 export {
     postJob,
     getAllJobs,
     getMyJobs,
+    getJobsByStatus,
     deleteJob,
     getASingleJob,
-    getRecentJobs
+    getRecentJobs,
+    getPopularCategories
 }

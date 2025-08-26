@@ -58,7 +58,58 @@ class JobRepository extends CrudRepository{
             throw error;
         }
     }
-    
+
+    async getJobsByStatus(status, page, limit) {
+        try {
+            const skip = (page-1)*limit;
+            const jobs = await Job.find({ status: status }).skip(skip).limit(limit);
+            return jobs;
+        } catch (error) {
+            console.log('Job Repository Error');
+            throw error;
+        }
+    }
+
+    async getPopularCategories() {
+        try{
+            const popularCategories = await Job.aggregate([
+                { $match: { status: 'Open' } },
+
+                // Group by categoryId and count jobs
+                { $group: {
+                    _id: "$categoryId",
+                    jobCount: { $sum: 1 }
+                }},
+
+                // Join with Category collection to get category details
+                { $lookup: {
+                    from: "categories",        // Category collection name
+                    localField: "_id",         // categoryId from grouped result
+                    foreignField: "_id",       // _id field in Category collection
+                    as: "categoryInfo"
+                }},
+
+                // Unwind the category info array
+                { $unwind: "$categoryInfo" },
+
+                // Project the final structure
+                { $project: {
+                    _id: 1,
+                    jobCount: 1,
+                    categoryName: "$categoryInfo.name",
+                }},
+
+                { $sort: { jobCount: -1 } },  // Sort by job count descending
+                { $limit: 10 }                // Top 10 popular categories
+            ]);
+
+            return popularCategories;
+        } catch (error) {
+            console.log('getPopularCategories Repository Error');
+            throw error;
+        }
+    }
+
 }
 
 export default JobRepository;
