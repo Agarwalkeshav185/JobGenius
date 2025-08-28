@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import EmployerServices from '../../../Services/EmployerServices';
 import JobFilterBar from '../../../Components/Layout/EmployerDashBoard/JobManagement/SearchJobComponent';
 import JobTable from '../../../Components/Layout/EmployerDashBoard/JobManagement/JobTableComponent';
+import AlertDisplay from '../../../Components/UI/AlertDisplay';
 import { useAuth } from '../../../Context/AuthContext';
 
 const JobManagement = () => {
@@ -128,19 +129,11 @@ const JobManagement = () => {
       </div>
       
       {/* Error Display */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex justify-between items-center">
-            <p className="text-red-600">{error}</p>
-            <button 
-              onClick={() => setError('')}
-              className="text-red-400 hover:text-red-600"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
+      <AlertDisplay 
+        message={error} 
+        onClose={() => setError('')} 
+        variant="error"
+      />
       
       {/* Filter Bar */}
       <JobFilterBar
