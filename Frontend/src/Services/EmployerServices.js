@@ -1,3 +1,4 @@
+import { getMyJobs } from "../../../Backend/src/controllers/job-controller";
 import axiosInstance from "../api/axiosInstance";
 
 const EmployerServices = {
@@ -30,6 +31,36 @@ const EmployerServices = {
             throw error;
         }
     },
+
+    searchCategories : async (query)=>{
+        try{
+            const response = await axiosInstance.get(`/category/search?query=${query}`);
+            return response.data.data;
+        }
+        catch(error){
+            throw error;
+        }
+    },
+
+    getPopularCategories : async ()=>{
+        try{
+            const response = await axiosInstance.get('/job/popular');
+            return response.data;
+        }
+        catch(error){
+            throw error;
+        }
+    },
+
+    getMyJobs : async (params)=>{
+        try{
+            const response = await axiosInstance.get('/job/getmyjobs', { params });
+            return response.data;
+        }
+        catch(error){
+            throw error;
+        }
+    }
 }
 
 export default EmployerServices;

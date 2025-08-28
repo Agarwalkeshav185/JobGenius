@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import EmployerServices from  "../../../Services/EmployerServices";
+import React, { useState, useEffect } from 'react';
+import EmployerServices from "../../../Services/EmployerServices";
 import { useAuth } from '../../../Context/AuthContext';
 
 const initialJob = {
@@ -17,7 +17,6 @@ const initialJob = {
 };
 
 const jobTypes = ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Temporary', 'Remote'];
-const categories = ['Engineering', 'Design', 'Product', 'Marketing', 'Sales', 'HR', 'Other'];
 
 const CreateJob = () => {
   const { user, isJobSeeker } = useAuth();
@@ -31,9 +30,66 @@ const CreateJob = () => {
   const [offersList, setOffersList] = useState([]);
   const [offerInput, setOfferInput] = useState('');
 
+  // Category states
+  const [popularCategories, setPopularCategories] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [categorySearch, setCategorySearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [searchingCategories, setSearchingCategories] = useState(false);
+
   if (isJobSeeker() || !user) {
     return <div>Access Denied. Only Employer and Manager can post the jobs.</div>;
   }
+
+  // Load popular categories on mount
+  useEffect(() => {
+    const loadPopularCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const response = await EmployerServices.getPopularCategories();
+        console.log("Popular Categories:", response);
+        
+        setPopularCategories(response.data || []);
+      } catch (error) {
+        console.error("Error fetching popular categories:", error);
+        // Fallback to static categories
+        setPopularCategories([
+          { _id: 'temp1', name: 'Engineering', jobCount: 25 },
+          { _id: 'temp2', name: 'Design', jobCount: 18 },
+          { _id: 'temp3', name: 'Marketing', jobCount: 15 }
+        ]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    loadPopularCategories();
+  }, []);
+
+  // Debounced search for categories
+  useEffect(() => {
+    if (categorySearch.trim() === '') {
+      setSearchResults([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        setSearchingCategories(true);
+        const response = await EmployerServices.searchCategories(categorySearch);
+        setSearchResults(response || []);
+      } catch (error) {
+        console.error("Error searching categories:", error);
+        setSearchResults([]);
+      } finally {
+        setSearchingCategories(false);
+      }
+    }, 600); // 600ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [categorySearch]);
 
   // Handle input change
   const handleChange = (e) => {
@@ -42,6 +98,50 @@ const CreateJob = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  // Handle category search input - Updated
+  const handleCategorySearch = (e) => {
+    const value = e.target.value;
+    setCategorySearch(value);
+    setShowDropdown(true);
+    
+    // Clear selected category if user is typing
+    if (selectedCategory && value !== (selectedCategory.name || selectedCategory.categoryName)) {
+      setSelectedCategory(null);
+      setJob(prev => ({ ...prev, category: '' }));
+    }
+  };
+
+  // Handle category selection - Updated
+  const handleCategorySelect = (category) => {
+    console.log("🎯 Category selected:", category);
+    
+    setSelectedCategory(category);
+    setCategorySearch(category.name || category.categoryName);
+    setJob(prev => ({ ...prev, category: category._id }));
+    setShowDropdown(false);
+    setSearchResults([]);
+  };
+
+  // Get categories to display (popular + search results)
+  const getCategoriesToShow = () => {
+    if (categorySearch.trim() === '') {
+      return popularCategories;
+    }
+    
+    // Filter popular categories that match search + search results
+    const filteredPopular = popularCategories.filter(cat => 
+      (cat.name || cat.categoryName).toLowerCase().includes(categorySearch.toLowerCase())
+    );
+    
+    // Combine and remove duplicates
+    const combined = [...filteredPopular, ...searchResults];
+    const unique = combined.filter((cat, index, arr) => 
+      arr.findIndex(c => c._id === cat._id) === index
+    );
+    
+    return unique;
   };
 
   // Add requirement to list
@@ -83,49 +183,100 @@ const CreateJob = () => {
     setOffersList(prev => prev.filter((_, i) => i !== idx));
   };
 
-  // Submit job (mock)
+  // Reset form
+  const resetForm = () => {
+    setJob(initialJob);
+    setRequirementsList([]);
+    setResponsibilitiesList([]);
+    setOffersList([]);
+    setHiringMultiple(false);
+    setRequirementInput('');
+    setResponsibilityInput('');
+    setOfferInput('');
+    setCategorySearch('');
+    setSelectedCategory(null);
+    setSearchResults([]);
+    setShowDropdown(false);
+  };
+
+  // Submit job
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!selectedCategory) {
+      alert('Please select a category');
+      return;
+    }
+
+    if (requirementsList.length === 0) {
+      alert('Please add at least one requirement');
+      return;
+    }
+
+    if (responsibilitiesList.length === 0) {
+      alert('Please add at least one responsibility');
+      return;
+    }
+
     setSubmitting(true);
     
     const jobData = { 
-      title : job.title,
-      companyId : user?.companyId?._id || user?.companyId,
-      categoryName : "Engineering & Manufacturing" || job.category,
-      location : job.location,
-      jobType : job.jobType,
-      minSalary : job.salaryMin,
-      maxSalary : job.salaryMax,
-      jobPostDeadline : job.jobPostingDeadline,
-      introduction : job.description,
-      responsibilities : responsibilitiesList,
-      qualifications : requirementsList,
+      title: job.title,
+      companyId: user?.companyId?._id || user?.companyId,
+      categoryId: selectedCategory._id,
+      categoryName: selectedCategory.name || selectedCategory.categoryName,
+      location: job.location,
+      jobType: job.jobType,
+      minSalary: Number(job.salaryMin),
+      maxSalary: Number(job.salaryMax),
+      jobPostDeadline: job.jobPostingDeadline,
+      introduction: job.description,
+      responsibilities: responsibilitiesList,
+      qualifications: requirementsList,
       offers: offersList,
       hiringMultipleCandidates: hiringMultiple ? 'Yes' : 'No'
     };
+
     try {
+      // console.log('Sending job data:', jobData);
       const response = await EmployerServices.createJob(jobData);
+      // console.log('Job creation response:', response);
+      
       alert('Job posted successfully!');
-    }catch(error){
-      // console.error('Error posting job:', error);
-      // console.error('Full error object:', error);
-      // console.error('Error response:', error.response?.data);
-      // console.error('Error status:', error.response?.status);
-      alert('Failed to post job. Please try again.');
-    }finally {
+      resetForm();
+    } catch (error) {
+      console.error('Error posting job:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to post job. Please try again.';
+      alert(errorMessage);
+    } finally {
       setSubmitting(false);
-      setJob(initialJob);
-      setRequirementsList([]);
-      setResponsibilitiesList([]);
-      setOffersList([]);
-      setHiringMultiple(false);
     }
   };
+
   const companyName = user?.companyId?.name || user?.companyName || "Company not found";
+
+  // Add this useEffect to handle clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const dropdown = document.querySelector('.category-dropdown');
+      const input = document.querySelector('.category-input');
+      
+      if (dropdown && !dropdown.contains(event.target) && !input.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-6 my-8">
       <h2 className="text-2xl font-bold mb-6 text-gray-900">Create New Job</h2>
+      
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Job Title */}
         <div>
@@ -153,24 +304,75 @@ const CreateJob = () => {
           />
         </div>
 
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-          <select
-            name="category"
-            value={job.category}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
-          >
-            <option value="">Select category</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+        {/* Category - Search Dropdown */}
+        <div className="relative">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Category <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={categorySearch}
+            onChange={handleCategorySearch}
+            onFocus={() => setShowDropdown(true)}
+            placeholder={loadingCategories ? "Loading categories..." : "Search or select category..."}
+            disabled={loadingCategories}
+            className="category-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100"
+          />
+          
+          {/* Dropdown */}
+          {showDropdown && (
+            <div className="category-dropdown absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {categorySearch === '' && (
+                <div className="px-3 py-2 text-sm text-gray-500 bg-gray-50">
+                  Popular Categories
+                </div>
+              )}
+              
+              {searchingCategories ? (
+                <div className="px-3 py-2 text-sm text-gray-500">
+                  Searching...
+                </div>
+              ) : (
+                <>
+                  {getCategoriesToShow().length > 0 ? (
+                    getCategoriesToShow().map(category => (
+                      <div
+                        key={category._id}
+                        onMouseDown={(e) => e.preventDefault()} // Prevent blur when clicking
+                        onClick={() => handleCategorySelect(category)}
+                        className="px-3 py-2 hover:bg-teal-50 cursor-pointer border-b border-gray-100 last:border-0"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">
+                            {category.name || category.categoryName}
+                          </span>
+                          {category.jobCount && (
+                            <span className="text-xs text-gray-500">
+                              {category.jobCount} jobs
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      {categorySearch ? 'No categories found' : 'No popular categories available'}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+          
+          {/* Selected category display */}
+          {selectedCategory && (
+            <div className="mt-1 text-sm text-green-600">
+              ✓ Selected: {selectedCategory.name || selectedCategory.categoryName}
+            </div>
+          )}
         </div>
 
-        {/* Location & Remote */}
+        {/* Location & Hiring Multiple */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -184,9 +386,8 @@ const CreateJob = () => {
               placeholder="e.g. San Francisco, CA"
             />
           </div>
-          {/* Hiring Multiple Candidates */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Hiring Multiple Candidates?</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Hiring Multiple?</label>
             <button
               type="button"
               className={`px-4 py-2 rounded-lg font-semibold transition ${
@@ -257,6 +458,7 @@ const CreateJob = () => {
             value={job.jobPostingDeadline}
             onChange={handleChange}
             required
+            min={new Date().toISOString().split('T')[0]}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
           />
         </div>
@@ -277,12 +479,15 @@ const CreateJob = () => {
 
         {/* Requirements */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Requirements <span className="text-red-500">*</span>
+          </label>
           <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={requirementInput}
               onChange={e => setRequirementInput(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddRequirement())}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
               placeholder="e.g. React, Node.js"
             />
@@ -321,12 +526,15 @@ const CreateJob = () => {
 
         {/* Responsibilities */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Responsibilities</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Responsibilities <span className="text-red-500">*</span>
+          </label>
           <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={responsibilityInput}
               onChange={e => setResponsibilityInput(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddResponsibility())}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
               placeholder="e.g. Build UI components"
             />
@@ -371,6 +579,7 @@ const CreateJob = () => {
               type="text"
               value={offerInput}
               onChange={e => setOfferInput(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddOffer())}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
               placeholder="e.g. Health Insurance, Remote Work, Gym Membership"
             />
@@ -406,12 +615,13 @@ const CreateJob = () => {
             </div>
           )}
         </div>
+
         {/* Submit Button */}
         <div>
           <button
             type="submit"
-            disabled={submitting}
-            className="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 transition"
+            disabled={submitting || !selectedCategory}
+            className="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Posting...' : 'Post Job'}
           </button>

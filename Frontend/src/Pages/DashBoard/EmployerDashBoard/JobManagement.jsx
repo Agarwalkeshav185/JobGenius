@@ -1,225 +1,183 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import EmployerServices from '../../../Services/EmployerServices';
+import JobFilterBar from '../../../Components/Layout/EmployerDashBoard/JobManagement/SearchJobComponent';
+import JobTable from '../../../Components/Layout/EmployerDashBoard/JobManagement/JobTableComponent';
+import { useAuth } from '../../../Context/AuthContext';
 
-// Mock job data
-const mockJobs = [
-  {
-    id: 1,
-    title: 'Senior Frontend Developer',
-    status: 'Active',
-    applicants: 42,
-    posted: '2025-08-20',
-    location: 'Remote',
-    category: 'Engineering',
-  },
-  {
-    id: 2,
-    title: 'Product Manager',
-    status: 'Draft',
-    applicants: 28,
-    posted: '2025-08-15',
-    location: 'New York, NY',
-    category: 'Product',
-  },
-  {
-    id: 3,
-    title: 'UX/UI Designer',
-    status: 'Paused',
-    applicants: 35,
-    posted: '2025-08-10',
-    location: 'San Francisco, CA',
-    category: 'Design',
-  },
-  {
-    id: 4,
-    title: 'DevOps Engineer',
-    status: 'Closed',
-    applicants: 19,
-    posted: '2025-08-05',
-    location: 'Austin, TX',
-    category: 'Engineering',
-  },
-];
-
-// Status chip colors
-const statusColors = {
-  Active: 'bg-green-100 text-green-800',
-  Draft: 'bg-yellow-100 text-yellow-800',
-  Paused: 'bg-red-100 text-red-800',
-  Closed: 'bg-gray-100 text-gray-800',
-};
-
-// Job Table Row Component
-function JobTableRow({ job, onView, onEdit, onDelete, onStatusChange }) {
-  return (
-    <tr className="hover:bg-gray-50 transition">
-      <td className="px-4 py-4 font-semibold text-gray-900">{job.title}</td>
-      <td className="px-4 py-4 text-gray-700">{job.category}</td>
-      <td className="px-4 py-4 text-gray-700">{job.location}</td>
-      <td className="px-4 py-4">
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[job.status]} shadow`}>
-          {job.status}
-        </span>
-      </td>
-      <td className="px-4 py-4 text-center font-medium text-teal-700">{job.applicants}</td>
-      <td className="px-4 py-4 text-gray-500">{job.posted}</td>
-      <td className="px-4 py-4 flex gap-2">
-        <button
-          className="bg-teal-50 text-teal-700 px-3 py-1 rounded hover:bg-teal-100 transition font-medium"
-          onClick={() => onView(job.id)}
-          title="View"
-        >
-          View
-        </button>
-        <button
-          className="bg-blue-50 text-blue-700 px-3 py-1 rounded hover:bg-blue-100 transition font-medium"
-          onClick={() => onEdit(job.id)}
-          title="Edit"
-        >
-          Edit
-        </button>
-        <button
-          className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-100 transition font-medium"
-          onClick={() => onStatusChange(job.id)}
-          title="Change Status"
-        >
-          Status
-        </button>
-        <button
-          className="bg-red-50 text-red-700 px-3 py-1 rounded hover:bg-red-100 transition font-medium"
-          onClick={() => onDelete(job.id)}
-          title="Delete"
-        >
-          Delete
-        </button>
-      </td>
-    </tr>
-  );
-}
-
-// Job Table Component
-function JobTable({ jobs, onView, onEdit, onDelete, onStatusChange }) {
-  return (
-    <div className="overflow-x-auto rounded-xl shadow-lg bg-white">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gradient-to-r from-teal-50 to-blue-50">
-          <tr>
-            <th className="px-4 py-3 text-left text-xs font-bold text-teal-700 uppercase">Title</th>
-            <th className="px-4 py-3 text-left text-xs font-bold text-teal-700 uppercase">Category</th>
-            <th className="px-4 py-3 text-left text-xs font-bold text-teal-700 uppercase">Location</th>
-            <th className="px-4 py-3 text-left text-xs font-bold text-teal-700 uppercase">Status</th>
-            <th className="px-4 py-3 text-center text-xs font-bold text-teal-700 uppercase">Applicants</th>
-            <th className="px-4 py-3 text-left text-xs font-bold text-teal-700 uppercase">Posted</th>
-            <th className="px-4 py-3 text-left text-xs font-bold text-teal-700 uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs.length === 0 ? (
-            <tr>
-              <td colSpan={7} className="text-center py-8 text-gray-400 font-semibold">
-                No jobs found.
-              </td>
-            </tr>
-          ) : (
-            jobs.map(job => (
-              <JobTableRow
-                key={job.id}
-                job={job}
-                onView={onView}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onStatusChange={onStatusChange}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// Filter/Search Bar Component
-function JobFilterBar({ filter, setFilter, search, setSearch }) {
-  return (
-    <div className="flex flex-col md:flex-row gap-4 mb-6">
-      <input
-        type="text"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="🔍 Search jobs by title..."
-        className="px-4 py-2 border border-teal-200 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 flex-1"
-      />
-      <select
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-        className="px-4 py-2 border border-teal-200 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500"
-      >
-        <option value="">All Status</option>
-        <option value="Active">Active</option>
-        <option value="Draft">Draft</option>
-        <option value="Paused">Paused</option>
-        <option value="Closed">Closed</option>
-      </select>
-    </div>
-  );
-}
-
-// Main Job Management Page
 const JobManagement = () => {
-  const [jobs, setJobs] = useState(mockJobs);
-  const [filter, setFilter] = useState('');
+  const { user } = useAuth();
+  
+  // State management
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Filter states
   const [search, setSearch] = useState('');
-
-  // Actions
-  const handleView = (id) => {
-    alert(`View job ${id}`);
-    // Navigate to job details page
-  };
-  const handleEdit = (id) => {
-    alert(`Edit job ${id}`);
-    // Navigate to job edit page
-  };
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this job?')) {
-      setJobs(jobs.filter(job => job.id !== id));
+  const [filter, setFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalJobs, setTotalJobs] = useState(0);
+  
+  // Fetch jobs from API
+  const fetchJobs = async (searchTerm = '', statusFilter = '', currentPage = 1) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const params = {
+        page: currentPage,
+        limit: 10,
+        ...(searchTerm && { search: searchTerm }),
+        ...(statusFilter && { status: statusFilter })
+      };
+      
+      console.log('📡 Fetching jobs with params:', params);
+      
+      const response = await EmployerServices.getMyJobs(params);
+      console.log('✅ Jobs response:', response.data);
+      if (response.success) {
+        setJobs(response.data || []);
+        setTotalPages(response.pagination?.totalPages || 1);
+        setTotalJobs(response.pagination?.totalItems || 0);
+      } else {
+        throw new Error(response.message || 'Failed to fetch jobs');
+      }
+    } catch (err) {
+      console.error('❌ Error fetching jobs:', err);
+      setError('Failed to fetch jobs. Please try again.');
+      setJobs([]);
+    } finally {
+      setLoading(false);
     }
   };
-  const handleStatusChange = (id) => {
-    setJobs(jobs.map(job => {
-      if (job.id === id) {
-        // Cycle through statuses for demo
-        const statusOrder = ['Active', 'Paused', 'Closed', 'Draft'];
-        const nextStatus = statusOrder[(statusOrder.indexOf(job.status) + 1) % statusOrder.length];
-        return { ...job, status: nextStatus };
-      }
-      return job;
-    }));
+
+  // Initial load
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+
+  // Handle search and filter changes with debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setPage(1);
+      fetchJobs(search, filter, 1);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [search, filter]);
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    fetchJobs(search, filter, newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Filter and search logic
-  const filteredJobs = jobs.filter(job => {
-    const matchesFilter = filter ? job.status === filter : true;
-    const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  // Handle job actions
+  const handleJobAction = async (jobId, action) => {
+    try {
+      let result;
+      
+      switch (action) {
+        case 'delete':
+          if (window.confirm('Are you sure you want to delete this job?')) {
+            result = await EmployerServices.deleteJob(jobId);
+            if (result.success) {
+              fetchJobs(search, filter, page);
+            }
+          }
+          break;
+          
+        case 'edit':
+          window.location.href = `/dashboard/jobs/edit/${jobId}`;
+          break;
+          
+        case 'pause':
+          result = await EmployerServices.updateJobStatus(jobId, 'Paused');
+          if (result.success) {
+            fetchJobs(search, filter, page);
+          }
+          break;
+          
+        case 'activate':
+          result = await EmployerServices.updateJobStatus(jobId, 'Open');
+          if (result.success) {
+            fetchJobs(search, filter, page);
+          }
+          break;
+          
+        case 'view-applications':
+          window.location.href = `/dashboard/jobs/${jobId}/applications`;
+          break;
+          
+        default:
+          console.warn('Unknown action:', action);
+      }
+    } catch (err) {
+      console.error(`❌ Error performing ${action}:`, err);
+      setError(`Failed to ${action} job. Please try again.`);
+    }
+  };
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4">
-      <div className="mb-8">
-        <h2 className="text-3xl font-extrabold text-teal-700 tracking-tight mb-2">Manage Jobs</h2>
-        <p className="text-gray-500 text-base">View, edit, and manage all your posted jobs in one place.</p>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Job Management</h1>
       </div>
+      
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex justify-between items-center">
+            <p className="text-red-600">{error}</p>
+            <button 
+              onClick={() => setError('')}
+              className="text-red-400 hover:text-red-600"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Filter Bar */}
       <JobFilterBar
         filter={filter}
         setFilter={setFilter}
         search={search}
         setSearch={setSearch}
+        loading={loading}
       />
-      <JobTable
-        jobs={filteredJobs}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onStatusChange={handleStatusChange}
+      
+      {/* Stats */}
+      {!loading && (
+        <div className="mb-4 text-sm text-gray-600">
+          Showing {jobs.length} of {totalJobs} jobs
+          {(search || filter) && (
+            <span className="ml-2">
+              (filtered {search && `by "${search}"`} {filter && `• ${filter} status`})
+            </span>
+          )}
+        </div>
+      )}
+      
+      {/* Jobs Table - Using your reusable components */}
+      <JobTable 
+        jobs={jobs}
+        loading={loading}
+        onJobAction={handleJobAction}
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        emptyMessage={
+          jobs.length === 0 && !loading 
+            ? (search || filter) 
+              ? 'No jobs match your search criteria' 
+              : 'No jobs posted yet. Create your first job!'
+            : null
+        }
       />
     </div>
   );

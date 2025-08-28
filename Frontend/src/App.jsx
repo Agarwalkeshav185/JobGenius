@@ -22,6 +22,7 @@ import JobManagement from "./Pages/DashBoard/EmployerDashBoard/JobManagement.jsx
 import CreateJob from "./Pages/DashBoard/EmployerDashBoard/CreateJob.jsx";
 import CompanyProfile from "./Pages/DashBoard/EmployerDashBoard/CompanyProfile.jsx";
 import ViewCandidates from "./Pages/DashBoard/EmployerDashBoard/ViewCandidates.jsx";
+import EmployerProfileSettings from "./Pages/DashBoard/EmployerDashBoard/ConfigurationSettings.jsx";
 import { AuthProvider } from "./Context/AuthContext";
 import "./App.css"
 
@@ -49,6 +50,7 @@ function App() {
               <Route path="manage-jobs" element={<JobManagement />} />
               <Route path="company-profile" element={<CompanyProfile />} />
               <Route path="candidates" element={<ViewCandidates />} />
+              <Route path="settings" element={<EmployerProfileSettings />} />
             </Route>
 
             <Route path="/dashboard/jobseeker" element={<JobSeekerDrawer />}>
