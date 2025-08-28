@@ -51,7 +51,7 @@ class JobService {
         }
     }
 
-    async getAllJobs(data) {
+    async getAllJobs(data, options = {}) {
         try {
             const {
                 jobType,
@@ -61,6 +61,7 @@ class JobService {
                 categoryId,
                 companyId
             } = data;
+            const {page, limit} = options;
 
             const query = {};
             if (jobType) query.jobType = jobType;
@@ -74,7 +75,7 @@ class JobService {
                 { introduction: { $regex: searchKeyword, $options: 'i' } }
             ];
 
-            const jobs = await this.jobRepository.getByFilter(query);
+            const jobs = await this.jobRepository.getByFilter(query, {page, limit});
             return jobs;
         } catch (error) {
             console.log('getAllJobs Service Error.');
@@ -82,9 +83,9 @@ class JobService {
         }
     }
 
-    async getMyJobs(id) {
+    async getMyJobs(id, options = {}) {
         try {
-            const jobs = await this.jobRepository.getMyJobs(id);
+            const jobs = await this.jobRepository.getMyJobs(id, options);
             return jobs;
         } catch (error) {
             console.log('getMyJobs Service Error.');
@@ -127,20 +128,6 @@ class JobService {
             return jobs;
         } catch (error) {
             console.log('getRecentJobs Service Error.');
-            throw error;
-        }
-    }
-
-    async getJobsByStatus(status, options) {
-        try {
-            const { page = 1, limit = 10 } = options;
-            const jobs = await this.jobRepository.getJobsByStatus(status, page, limit);
-            if (!jobs || jobs.length === 0) {
-                throw new ErrorHandler('No jobs found for this status.', 404);
-            }
-            return jobs;
-        } catch (error) {
-            console.log('getJobsByStatus Service Error.');
             throw error;
         }
     }

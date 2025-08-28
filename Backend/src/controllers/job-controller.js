@@ -69,14 +69,20 @@ const getAllJobs = catchAsynErrors(async(req, res, next)=>{
             jobType,
             city,
             jobNiche,
+            title,
+            status,
+            page,
+            limit,
             searchKeyword
           } = req.query;
         const jobs = await jobService.getAllJobs({
             jobType,
             city,
             jobNiche,
+            title,
+            status,
             searchKeyword
-        });
+        }, {page, limit});
         return res.status(200).json({
             success : true,
             message : 'Able to fetched the jobs.',
@@ -93,12 +99,16 @@ const getAllJobs = catchAsynErrors(async(req, res, next)=>{
 });
 const getMyJobs = catchAsynErrors(async(req, res, next)=>{
     try {
-        const jobs = await jobService.getMyJobs(req.user.id);
-        return res.status(200).json({
-            success : true,
-            message : 'Successfully fetched the jobs.',
-            data : jobs
-        });
+        const options = {
+            page: req.query.page || 1,
+            limit: req.query.limit || 10,
+            title: req.query.search || '',
+            status: req.query.status || 'Open',
+        };
+        const jobs = await jobService.getMyJobs(req.user.id, options);
+        return res.status(200).json(
+            jobs
+        );
     } catch (error) {
         console.log('Get My Jobs Controller Error');
         return res.status(500).json({
@@ -177,34 +187,6 @@ const getRecentJobs = catchAsynErrors(async(req, res, next)=>{
     }
 });
 
-const getJobsByStatus = catchAsynErrors(async (req, res, next) => {
-    try {
-        const { status } = req.params;
-        const {page, limit} = req.query;
-        if (!status) {
-            const jobs = await jobService.getAllJobs({});
-            return res.status(200).json({
-                success: true,
-                message: 'Successfully fetched all jobs.',
-                data: jobs,
-                count: jobs.length
-            });
-        }
-        const jobs = await jobService.getJobsByStatus(status, {page, limit});
-        return res.status(200).json({
-            success: true,
-            message: 'Successfully fetched jobs by status.',
-            data: jobs
-        });
-    } catch (error) {
-        console.log('Get Jobs By Status Controller Error');
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
 const getPopularCategories = catchAsynErrors(async (req, res, next) => {
     try {
         const categories = await jobService.getPopularCategories();
@@ -226,7 +208,6 @@ export {
     postJob,
     getAllJobs,
     getMyJobs,
-    getJobsByStatus,
     deleteJob,
     getASingleJob,
     getRecentJobs,
