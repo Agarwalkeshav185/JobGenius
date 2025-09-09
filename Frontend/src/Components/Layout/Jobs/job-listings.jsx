@@ -1,110 +1,107 @@
-export default function JobListings({ searchTerm, filters }) {
-  const jobs = [
-    {
-      id: 1,
-      title: "Forward Security Director",
-      company: "TechCorp",
-      location: "New York, NY",
-      type: "Full-time",
-      salary: "$120k - $150k",
-      posted: "2 days ago",
-    },
-    {
-      id: 2,
-      title: "Regional Creative Facilitator",
-      company: "Creative Agency",
-      location: "Los Angeles, CA",
-      type: "Full-time",
-      salary: "$80k - $100k",
-      posted: "3 days ago",
-    },
-    {
-      id: 3,
-      title: "Internal Integration Planner",
-      company: "Global Solutions",
-      location: "Chicago, IL",
-      type: "Contract",
-      salary: "$90k - $110k",
-      posted: "1 week ago",
-    },
-    {
-      id: 4,
-      title: "District Internal Director",
-      company: "Business Corp",
-      location: "Houston, TX",
-      type: "Full-time",
-      salary: "$100k - $130k",
-      posted: "4 days ago",
-    },
-    {
-      id: 5,
-      title: "Corporate Tactics Facilitator",
-      company: "Strategy Inc",
-      location: "Seattle, WA",
-      type: "Part-time",
-      salary: "$70k - $90k",
-      posted: "5 days ago",
-    },
-    {
-      id: 6,
-      title: "Forward Accounts Consultant",
-      company: "Finance Pro",
-      location: "Miami, FL",
-      type: "Full-time",
-      salary: "$85k - $105k",
-      posted: "1 week ago",
-    },
-  ]
+import JobListingCard from "../../Cards/JobListingCard";
+import Pagination from "../../UI/Pagination";
+import { Button } from "../../UI/Button";
+import formatTimeAgo from "../../../utils/formatDate";
+
+export default function JobListings({ 
+  jobs, 
+  totalJobs, 
+  pagination = { page: 1, limit: 2, totalPages: 5 },
+  onPageChange = () => {},
+  paginationLoading = false,
+  startItem = 0,
+  endItem = 0,
+  onClearFilters = () => {}
+}) {
 
   return (
     <div className="flex-1">
       <div className="space-y-4">
-        {jobs.map((job) => (
-          <div key={job.id} className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{job.title}</h3>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                  <span className="flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 01-1 1H4a1 1 0 110-2V4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {job.company}
-                  </span>
-                  <span className="flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {job.location}
-                  </span>
-                  <span className="bg-gray-100 px-2 py-1 rounded text-xs">{job.type}</span>
-                  <span className="text-green-600 font-medium">{job.salary}</span>
-                </div>
-                <p className="text-gray-600 text-sm">{job.posted}</p>
+        {/* Show loading skeleton while pagination is loading */}
+        {paginationLoading ? (
+          <div className="space-y-4">
+            {[...Array(pagination.limit)].map((_, index) => (
+              <div key={index} className="bg-white p-6 rounded-lg shadow-sm border animate-pulse">
+                <div className="h-6 bg-gray-200 rounded mb-4 w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded mb-2 w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
               </div>
-              <button className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 ml-4">View Job</button>
+            ))}
+          </div>
+        ) : jobs.length > 0 ? (
+            jobs.map((job) => {
+            const salary = job.salary || `$${job.minSalary || 0} - $${job.maxSalary || 0}`
+            const timeAgo = formatTimeAgo(job.updatedAt);
+            return (
+              <JobListingCard 
+                key={job._id}
+                id={job._id}
+                title={job.title}
+                companyId={job.companyId}
+                timeAgo={timeAgo}
+                jobType={job.jobType}
+                salary={salary}
+                location={job.location}
+              />
+            )
+          })
+        ) : (
+          // ✅ Enhanced No jobs found section with Button component
+          <div className="text-center py-16">
+            <div className="mb-6">
+              <svg 
+                className="mx-auto h-12 w-12 text-gray-400 mb-4" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                />
+              </svg>
+              <div className="text-gray-500 text-xl font-medium mb-2">
+                No jobs found matching your criteria
+              </div>
+              <div className="text-gray-400 text-base mb-6">
+                Try adjusting your search or filters to find more opportunities
+              </div>
+            </div>
+            
+            {/* Action buttons using Button component */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <Button 
+                variant="outline" 
+                size="default"
+                onClick={onClearFilters}
+                className="w-half sm:w-auto"
+              >
+                Clear All Filters
+              </Button>
             </div>
           </div>
-        ))}
+        )}
       </div>
 
-      <div className="flex justify-center mt-8">
-        <div className="flex space-x-2">
-          <button className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50">Previous</button>
-          <button className="px-3 py-2 bg-teal-500 text-white rounded-md">1</button>
-          <button className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50">2</button>
-          <button className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50">3</button>
-          <button className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50">Next</button>
-        </div>
-      </div>
+      {/* ✅ Replace all pagination code with reusable Pagination component */}
+      <Pagination
+        totalItems={totalJobs}
+        currentPage={pagination.page}
+        itemsPerPage={pagination.limit}
+        totalPages={pagination.totalPages}
+        startItem={startItem}
+        endItem={endItem}
+        itemName="results"
+        onPageChange={onPageChange}
+        loading={paginationLoading}
+        showPageSize={true}
+        pageSizeOptions={[5, 10, 25, 50]}
+        maxPagesToShow={5}
+        className="mt-8"
+        variant="default"
+      />
     </div>
   )
 }

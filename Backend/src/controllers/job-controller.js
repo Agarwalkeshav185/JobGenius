@@ -68,32 +68,50 @@ const getAllJobs = catchAsynErrors(async(req, res, next)=>{
         const {
             jobType,
             city,
-            jobNiche,
             title,
             status,
             page,
+            categoryId,
+            companyId,
             limit,
-            searchKeyword
+            searchKeyword,
+            experienceLevel, 
+            minSalary,      
+            maxSalary 
           } = req.query;
-        const jobs = await jobService.getAllJobs({
-            jobType,
+          
+        const { jobs, pagination, count } = await jobService.getAllJobs({
+            jobType,        
             city,
-            jobNiche,
-            title,
+            searchKeyword,
+            title, 
             status,
-            searchKeyword
+            categoryId,
+            companyId,
+            experienceLevel, 
+            minSalary,      
+            maxSalary 
         }, {page, limit});
         return res.status(200).json({
-            success : true,
-            message : 'Able to fetched the jobs.',
-            data : jobs,
-            count : jobs.length
+            success: true,
+            message: 'Successfully fetched jobs.',
+            data: jobs,
+            pagination: {
+                currentPage: parseInt(page) || 1,
+                totalPages: pagination?.totalPages || Math.ceil(count / (limit || 10)),
+                totalItems: count || jobs.length,
+                itemsPerPage: parseInt(limit) || 10,
+                hasNextPage: pagination?.hasNextPage || false,
+                hasPrevPage: pagination?.hasPrevPage || false
+            }
         });
+        
     } catch (error) {
+        console.log("error:- ", error);
         console.log('Get All Jobs Controller Error');
         return res.status(500).json({
-            success : false,
-            message : error.message
+            success: false,
+            message: error.message
         });
     }
 });
@@ -166,13 +184,21 @@ const getASingleJob = catchAsynErrors(async(req, res, next)=>{
 
 const getRecentJobs = catchAsynErrors(async(req, res, next)=>{
     try{
-        const { limit = 6 } = req.query; // Allow frontend to specify how many recent jobs to fetch
-        const jobs = await jobService.getRecentJobs(limit);
+        const { page = 1, limit = 6 } = req.query;
+        const {jobs, totalJobs} = await jobService.getRecentJobs({page, limit});
+        
         return res.status(200).json({
-            success : true,
-            message : 'Successfully fetched recent jobs.',
-            data : jobs,
-            count: jobs.length
+            success: true,
+            message: 'Successfully fetched recent jobs.',
+            data: jobs,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(totalJobs / limit),
+                totalItems: totalJobs,
+                itemsPerPage: parseInt(limit),
+                hasNextPage: (page * limit) < totalJobs,
+                hasPrevPage: page > 1
+            }
         });
     } catch (error) {
         console.log('Get Recent Jobs Controller Error');
@@ -180,9 +206,9 @@ const getRecentJobs = catchAsynErrors(async(req, res, next)=>{
         if(error.message == 'No recent jobs found.'){
             statusCode = 404;
         }
-        return res.status(statusCode).json({
-            success : false,
-            message : error.message
+        return res.status(500).json({
+            success: false,
+            message: error.message
         });
     }
 });

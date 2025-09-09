@@ -12,10 +12,9 @@ class JobRepository extends CrudRepository{
 
             if(page && limit){
                 const skip = (page-1)*limit;
-                const jobs = await Job.find(data).skip(skip).limit(limit);
+                const jobs = await Job.find(data).populate('categoryId', 'name').populate('companyId', 'name').skip(skip).limit(limit);
                 const totalCount = await Job.countDocuments(data);
                 return {
-                    success: true,
                     jobs,
                     pagination: {
                         currentPage: page,
@@ -29,7 +28,6 @@ class JobRepository extends CrudRepository{
             } else {
                     const jobs = await Job.find(data);
                     return {
-                        success: true,
                         jobs,
                         count: jobs.length
                     };
@@ -43,7 +41,6 @@ class JobRepository extends CrudRepository{
     async getMyJobs(id, options = {}) {
         try {
             const { page, limit, title, status } = options;
-
             const query = { postedBy: id };
 
             if (title) query.title = { $regex: title, $options: 'i' };
@@ -86,20 +83,30 @@ class JobRepository extends CrudRepository{
         }
     }
 
-    async getRecentJobs(limit = 6){
+    async getRecentJobs(options = {}){
         try {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            
+
+            const { page = 1, limit = 6 } = options;
+
             const jobs = await Job.find({
+                status: 'Open',
                 createdAt: { $gte: thirtyDaysAgo }
             })
             .populate('companyId', 'name logo')
             .populate('categoryId', 'name')
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: -1 }).skip((page-1)*limit)
             .limit(parseInt(limit));
-            
-            return jobs;
+
+            const totalJobs = await Job.countDocuments({
+                status:'Open',
+                createdAt: { $gte: thirtyDaysAgo }
+            });
+            return {
+                jobs,
+                totalJobs
+            };
         } catch (error) {
             console.log('Job Repository Error');
             throw error;

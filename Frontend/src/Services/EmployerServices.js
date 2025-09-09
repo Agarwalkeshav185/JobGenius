@@ -1,4 +1,3 @@
-import { getMyJobs } from "../../../Backend/src/controllers/job-controller";
 import axiosInstance from "../api/axiosInstance";
 
 const EmployerServices = {

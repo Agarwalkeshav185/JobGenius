@@ -54,31 +54,124 @@ class JobService {
     async getAllJobs(data, options = {}) {
         try {
             const {
-                jobType,
+                jobType,        // Can be array or string
                 city,
-                jobNiche,
                 searchKeyword,
                 categoryId,
-                companyId
+                companyId,
+                title,          
+                status,         
+                experienceLevel, // Can be array or string
+                minSalary,      // Number
+                maxSalary       // Number
             } = data;
             const {page, limit} = options;
 
             const query = {};
-            if (jobType) query.jobType = jobType;
+
+            // Handle jobType as array or single value
+            if (jobType) {
+                if (Array.isArray(jobType) && jobType.length > 0) {
+                    query.jobType = { $in: jobType };
+                } else if (typeof jobType === 'string' && jobType.trim()) {
+                    query.jobType = jobType.trim();
+                }
+            }
+
+            // Handle experienceLevel as array or single value
+            if (experienceLevel) {
+                if (Array.isArray(experienceLevel) && experienceLevel.length > 0) {
+                    query.experienceLevel = { $in: experienceLevel };
+                } else if (typeof experienceLevel === 'string' && experienceLevel.trim()) {
+                    query.experienceLevel = experienceLevel.trim();
+                }
+            }
+
+            if (status) {
+                if (Array.isArray(status) && status.length > 0) {
+                    query.status = { $in: status };
+                } else if (typeof status === 'string' && status.trim()) {
+                    query.status = status.trim();
+                }
+            } else {
+                query.status = 'Open';
+            }
+
+            const salaryConditions = [];
+            
+            if (minSalary !== undefined && minSalary !== null && minSalary >= 0) {
+                salaryConditions.push({
+                    $or: [
+                        { minSalary: { $gte: minSalary } },
+                        { maxSalary: { $gte: minSalary } }
+                    ]
+                });
+            }
+
+            if (maxSalary !== undefined && maxSalary !== null && maxSalary > 0) {
+                salaryConditions.push({
+                    $or: [
+                        { maxSalary: { $lte: maxSalary } },
+                        { minSalary: { $lte: maxSalary } }
+                    ]
+                });
+            }
+
+            // Add salary conditions to main query
+            if (salaryConditions.length > 0) {
+                query.$and = query.$and ? [...query.$and, ...salaryConditions] : salaryConditions;
+            }
+
             if (city) query.location = { $regex: city, $options: 'i' };
-            if (jobNiche) query.jobNiche = { $regex: jobNiche, $options: 'i' };
-            if (categoryId) query.categoryId = categoryId;
-            if (companyId) query.companyId = companyId;
-            if (searchKeyword) query.$or = [
-                { title: { $regex: searchKeyword, $options: 'i' } },
-                { companyName: { $regex: searchKeyword, $options: 'i' } },
-                { introduction: { $regex: searchKeyword, $options: 'i' } }
-            ];
+            
+            if (title && title.trim()) {
+                query.title = { $regex: title.trim(), $options: 'i' };
+            }
+
+            // Handle categoryId
+            if (categoryId) {
+                if (Array.isArray(categoryId) && categoryId.length > 0) {
+                    query.categoryId = { $in: categoryId.map(id => new mongoose.Types.ObjectId(id)) };
+                } else if (categoryId) {
+                    query.categoryId = new mongoose.Types.ObjectId(categoryId);
+                }
+            }
+
+            // Handle companyId
+            if (companyId) {
+                if (Array.isArray(companyId) && companyId.length > 0) {
+                    query.companyId = { $in: companyId.map(id => new mongoose.Types.ObjectId(id)) };
+                } else if (companyId) {
+                    query.companyId = new mongoose.Types.ObjectId(companyId);
+                }
+            }
+
+            // Search keyword across multiple fields
+            if (searchKeyword && searchKeyword.trim()) {
+                const searchCondition = {
+                    $or: [
+                        { title: { $regex: searchKeyword.trim(), $options: 'i' } },
+                        { introduction: { $regex: searchKeyword.trim(), $options: 'i' } },
+                        { description: { $regex: searchKeyword.trim(), $options: 'i' } }
+                    ]
+                };
+
+                if (query.$and) {
+                    query.$and.push(searchCondition);
+                } else if (query.$or) {
+                    query.$and = [{ $or: query.$or }, searchCondition];
+                    delete query.$or;
+                } else {
+                    query.$or = searchCondition.$or;
+                }
+            }
+
+            // console.log('Final Query:', JSON.stringify(query, null, 2));
 
             const jobs = await this.jobRepository.getByFilter(query, {page, limit});
             return jobs;
         } catch (error) {
-            console.log('getAllJobs Service Error.');
+            console.log('getAllJobs Service Error:', error.message);
             throw error;
         }
     }
@@ -114,18 +207,19 @@ class JobService {
             }
             return job;
         } catch (error) {
-            console.log('getASingleJob Service Error.');
+            // console.log('getASingleJob Service Error.');
             throw error;
         }
     }
 
-    async getRecentJobs(limit = 6) {
+    async getRecentJobs(options = {}) {
         try {
-            const jobs = await this.jobRepository.getRecentJobs(limit);
+            const {page, limit } = options;
+            const {jobs, totalJobs} = await this.jobRepository.getRecentJobs({page, limit});
             if (!jobs || jobs.length === 0) {
                 throw new ErrorHandler('No recent jobs found.', 404);
             }
-            return jobs;
+            return { jobs, totalJobs};
         } catch (error) {
             console.log('getRecentJobs Service Error.');
             throw error;

@@ -1,54 +1,42 @@
 import { Bookmark, Clock, MapPin, DollarSign } from "lucide-react"
 
-function JobListingCard({ logo, title, company, timeAgo, category, timeType, salary, location }) {
+function JobListingCard({ id, title, companyId, timeAgo, jobType, salary, location }) {
   return (
-    <div className="border rounded-md p-4 shadow-sm">
-      <div className="flex flex-col md:flex-row md:items-center gap-4">
-        <div className="flex-1">
-          <div className="flex justify-between">
-            <div className="flex gap-3 items-start">
-              <img src={logo || "/placeholder-company.png"} alt={company} className="w-[50px] h-[50px] rounded-md" />
-              <div>
-                <p className="text-xs text-gray-500">{timeAgo}</p>
-                <h3 className="font-bold text-lg">{title}</h3>
-                <p className="text-sm text-gray-600">{company}</p>
+    <div key={id} className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                    <span className="flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 01-1 1H4a1 1 0 110-2V4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {companyId?.name || companyId}
+                    </span>
+                    <span className="flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {location}
+                    </span>
+                    <span className="bg-gray-100 px-2 py-1 rounded text-xs">{jobType}</span>
+                    <span className="text-green-600 font-medium">{salary}</span>
+                  </div>
+                  <p className="text-gray-600 text-sm">{timeAgo}</p> {/* ✅ Show formatted time */}
+                </div>
+                <button className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 ml-4">
+                  View Job
+                </button>
               </div>
             </div>
-            <button className="h-8 w-8 text-gray-500 hover:text-gray-700">
-              <Bookmark className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-4 mt-4">
-            <div className="flex items-center text-xs text-gray-600">
-              <div className="bg-teal-50 p-1 rounded mr-2">
-                <img src="/placeholder-icon.png" alt="" className="w-4 h-4" />
-              </div>
-              {category}
-            </div>
-
-            <div className="flex items-center text-xs text-gray-600">
-              <Clock className="h-4 w-4 mr-1 text-gray-400" />
-              {timeType}
-            </div>
-
-            <div className="flex items-center text-xs text-gray-600">
-              <DollarSign className="h-4 w-4 mr-1 text-gray-400" />
-              {salary}
-            </div>
-
-            <div className="flex items-center text-xs text-gray-600">
-              <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-              {location}
-            </div>
-          </div>
-        </div>
-
-        <button className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded self-end md:self-center">
-          Job Details
-        </button>
-      </div>
-    </div>
   )
 }
 
