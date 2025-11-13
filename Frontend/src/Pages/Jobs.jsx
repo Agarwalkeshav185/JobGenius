@@ -211,8 +211,10 @@ export default function JobBoardPage() {
   };
   
   useEffect(() => {
+    // ensure page is at top when navigating to /jobs
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     loadInitialData();
-  }, []);
+  }, []); // Only run on component mount
 
   return (
     <div className="min-h-screen bg-gray-50">
