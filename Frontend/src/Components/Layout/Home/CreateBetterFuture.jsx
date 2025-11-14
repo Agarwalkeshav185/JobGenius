@@ -51,7 +51,7 @@ export default function CreateBetterFuture({
           <img
             src={bannerImage}
             alt="Create a better future banner"
-            className="w-full h-full object-cover min-h-[220px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[420px] xl:min-h-[350px] px-2"
+            className="w-full h-full object-cover min-h-[220px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[420px] xl:min-h-[350px] px-5"
           />
         </div>
       </div>
