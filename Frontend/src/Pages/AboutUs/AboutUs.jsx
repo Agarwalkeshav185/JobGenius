@@ -21,7 +21,7 @@ export default function AboutUsPage() {
       <VideoSection />
       <FAQ />
       <Statistics />
-      <NewsBlog />
+      {/* <NewsBlog /> */}
     </div>
   );
 }

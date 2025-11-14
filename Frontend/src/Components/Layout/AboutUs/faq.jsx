@@ -53,7 +53,7 @@ export default function FAQ() {
                 className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
               >
                 <span className="font-semibold text-gray-900 flex items-center">
-                  <span className="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  <span className="bg-teal-100 text-teal-500 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   {faq.question}

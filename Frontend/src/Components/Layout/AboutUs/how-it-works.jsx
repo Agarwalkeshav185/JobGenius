@@ -33,7 +33,7 @@ export default function HowItWorks() {
         <div className="grid md:grid-cols-4 gap-8">
           {steps.map((step, index) => (
             <div key={index} className="text-center">
-              <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+              <div className="w-16 h-16 bg-teal-500 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 {step.number}
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">{step.title}</h3>
