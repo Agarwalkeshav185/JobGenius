@@ -54,16 +54,17 @@ class JobService {
     async getAllJobs(data, options = {}) {
         try {
             const {
-                jobType,        // Can be array or string
+                jobType,        
                 city,
                 searchKeyword,
                 categoryId,
                 companyId,
+                location,
                 title,          
                 status,         
-                experienceLevel, // Can be array or string
-                minSalary,      // Number
-                maxSalary       // Number
+                experienceLevel,
+                minSalary,
+                maxSalary
             } = data;
             const {page, limit} = options;
 
@@ -216,9 +217,7 @@ class JobService {
         try {
             const {page, limit } = options;
             const {jobs, totalJobs} = await this.jobRepository.getRecentJobs({page, limit});
-            if (!jobs || jobs.length === 0) {
-                throw new ErrorHandler('No recent jobs found.', 404);
-            }
+
             return { jobs, totalJobs};
         } catch (error) {
             console.log('getRecentJobs Service Error.');
@@ -229,6 +228,16 @@ class JobService {
     async getPopularCategories() {
         try {
             const categories = await this.jobRepository.getPopularCategories();
+            return categories;
+        } catch (error) {
+            console.log('getPopularCategories Service Error.');
+            throw error;
+        }
+    }
+
+    async getJobDescription(jobId){
+        try {
+            const categories = await this.jobRepository.getJobDescription(jobId);
             return categories;
         } catch (error) {
             console.log('getPopularCategories Service Error.');

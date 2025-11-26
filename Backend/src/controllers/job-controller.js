@@ -68,6 +68,7 @@ const getAllJobs = catchAsynErrors(async(req, res, next)=>{
         const {
             jobType,
             city,
+            location,
             title,
             status,
             page,
@@ -83,6 +84,7 @@ const getAllJobs = catchAsynErrors(async(req, res, next)=>{
         const { jobs, pagination, count } = await jobService.getAllJobs({
             jobType,        
             city,
+            location,
             searchKeyword,
             title, 
             status,
@@ -229,6 +231,23 @@ const getPopularCategories = catchAsynErrors(async (req, res, next) => {
         });
     }
 });
+const getJobDescription = async(req, res, next) =>{
+    try{
+        const jobId = req.params.id;
+        const Job = await jobService.getJobDescription(jobId);
+        return res.status(200).json({
+            success: true,
+            message: 'Successfully fetched popular categories.',
+            data: Job
+        });
+    }catch(error){
+        console.log('Get Job Description Controller Error');
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
 
 export {
     postJob,
@@ -237,5 +256,6 @@ export {
     deleteJob,
     getASingleJob,
     getRecentJobs,
-    getPopularCategories
+    getPopularCategories,
+    getJobDescription   
 }

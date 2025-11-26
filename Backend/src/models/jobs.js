@@ -27,7 +27,7 @@ const jobSchema = new mongoose.Schema({
     status :{
         type: String,
         required: true,
-        default : 'Draft',
+        default : 'Open',
         enum: ['Open', 'Closed', 'Draft','Paused']
     },
     minSalary : {

@@ -5,6 +5,7 @@ import ContactUsPage from "./Pages/ContactUs"
 import Login from "./Pages/Login/Login"
 import SignUp from "./Pages/SignUp/SignUp";
 import JobBoardPage from "./Pages/Jobs";
+import JobDetails from "./Pages/ViewJob/jobDescription";
 import AdditionalDetails from "./Pages/SignUp/additionalDetails";
 import VerifyEmail from "./Pages/SignUp/verifyEmail";
 import JobSeekerDashboard from "./Pages/DashBoard/JobSeekerDashBoard/JobSeekerDashBoard.jsx";
@@ -15,7 +16,6 @@ import JobAlerts from "./Pages/DashBoard/JobSeekerDashBoard/JobAlerts.jsx";
 import JobSeekerSettings from "./Pages/DashBoard/JobSeekerDashBoard/JobSeekerSettings.jsx";
 import AboutUsPage from "./Pages/AboutUs/AboutUs.jsx";
 import JobSeekerDrawer from './Components/materialUi/JobSeekerDrawer.jsx';
-// import EmployerDashboard from "./Pages/Dashboard/EmployerDashboard";
 import EmployerDrawer from "./Components/materialUi/EmployerDrawer.jsx";
 import EmployerDashboard from "./Pages/DashBoard/EmployerDashBoard/EmployerDashBoard.jsx";
 import JobManagement from "./Pages/DashBoard/EmployerDashBoard/JobManagement.jsx";
@@ -24,6 +24,7 @@ import CompanyProfile from "./Pages/DashBoard/EmployerDashBoard/CompanyProfile.j
 import ViewCandidates from "./Pages/DashBoard/EmployerDashBoard/ViewCandidates.jsx";
 import EmployerProfileSettings from "./Pages/DashBoard/EmployerDashBoard/ConfigurationSettings.jsx";
 import { AuthProvider } from "./Context/AuthContext";
+import ApplyJob from "./Pages/Apply/Apply.jsx";
 import "./App.css"
 
 
@@ -36,6 +37,8 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/jobs" element={<JobBoardPage />} />
+            <Route path="/jobs/:jobId" element={<JobDetails />} />
+            <Route path="/jobs/:jobId/apply" element = {<ApplyJob />} />
             <Route path="/about" element={<AboutUsPage />} />
             <Route path="/contact" element={ <ContactUsPage /> } />
             <Route path ="/login" element  = { <Login /> } />
@@ -43,7 +46,6 @@ function App() {
             <Route path="/additionalDetails" element={<AdditionalDetails />} />
             <Route path="/verifyEmail" element={<VerifyEmail />} />
 
-            {/* ✅ CORRECTED - Proper nested route structure */}
             <Route path="/dashboard/employer" element={<EmployerDrawer />}>
               <Route index element={<EmployerDashboard />} />
               <Route path="create-job" element={<CreateJob />} />

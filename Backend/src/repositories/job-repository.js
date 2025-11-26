@@ -153,6 +153,18 @@ class JobRepository extends CrudRepository{
         }
     }
 
+    async getJobDescription(jobId){
+        try{
+            const job = await Job.findOne({ _id: jobId}).populate('companyId').populate('categoryId');
+            console.log(job);
+
+            return job;
+        } catch (error) {
+            console.log('getPopularCategories Repository Error');
+            throw error;
+        }
+    }
+
 }
 
 export default JobRepository;
