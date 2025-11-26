@@ -26,5 +26,4 @@ app.use(expressFileUpload({
 
 app.use('/api', ApiRoutes);
 
-
 export default app;
