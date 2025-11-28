@@ -33,7 +33,7 @@ class ApplicationService{
             }
             const isAppliedBefore = await this.applicationRepository.getAppliedBeforeApplication({
                 'jobInfo.jobId': jobId,              
-                'jobSeekerInfo.id': userData.id 
+                'jobSeekerInfo.id': userData.id
             });
 
             if(isAppliedBefore){
@@ -60,7 +60,8 @@ class ApplicationService{
 
             const jobInfo = {
                 jobId : jobId,
-                jobTitle : jobDetails.title
+                jobTitle : jobDetails.title,
+                company : jobDetails.companyId
             }
 
             const application = await this.applicationRepository.create({
@@ -89,23 +90,37 @@ class ApplicationService{
         }
     }
 
-    async JobSeekerGetApplication(userId){
+    async deleteApplication(){
         try {
-            const applications = await this.applicationRepository({
-                "jobSeekerInfo.id" : userId,
-                "deletedBy.employer" : false
-            });
-            return applications;
+            
         } catch (error) {
             console.log('Application Service Error');
             throw new ErrorHandler(error.message, error.statusCode);
         }
     }
 
-    async deleteApplication(){
-        try {
-            
-        } catch (error) {
+    async getApplicationsOfSeeker(seekerId){
+        try{
+            const data = {
+                "jobSeekerInfo.id" : seekerId,
+                "deletedBy.employer" : false
+            }
+            const applications = await this.applicationRepository.getApplicationAppiledByUser(data);
+            return applications;
+        }
+        catch(error){
+            console.log('Application Service Error');
+            throw new ErrorHandler(error.message, error.statusCode);
+        }
+    }
+
+    async getSingleApplication(applicationId){
+        try{
+            const application = await this.applicationRepository.getSingleApplication(applicationId);
+            console.log(application);
+            return application;
+        }
+        catch(error){
             console.log('Application Service Error');
             throw new ErrorHandler(error.message, error.statusCode);
         }

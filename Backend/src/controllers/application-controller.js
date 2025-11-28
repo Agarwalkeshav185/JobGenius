@@ -73,23 +73,6 @@ const employerGetApplication = catchAsynErrors(async (req, res, next)=>{
     }
 });
 
-const JobSeekerGetApplication = catchAsynErrors(async (req, res, next)=>{
-    try {
-        const response = await applicationService.employerGetApplication(req.user._id);
-        return res.status(200).json({
-            success : true,
-            data : response,
-            message : 'Successfully fetched all Applications.'
-        });
-    } catch (error) {
-        console.log('Application Controller Error');
-        return res.status(error.statusCode).json({
-            success : false,
-            message : error.message
-        });
-    }
-});
-
 const deleteApplication = catchAsynErrors(async (req, res, next)=>{
     try {
         
@@ -102,9 +85,75 @@ const deleteApplication = catchAsynErrors(async (req, res, next)=>{
     }   
 });
 
+const getApplicationsOfSeeker = catchAsynErrors(async(req, res, next) =>{
+    try{
+        const applications = await applicationService.getApplicationsOfSeeker(req.user._id);
+
+        if (!applications) {
+            return res.status(404).json({
+                success: false,
+                message: 'Application not found'
+            });
+        }
+        
+        return res.status(200).json({
+            success : true,
+            applications,
+            message : 'Apllications Retreived Successfully'
+        });
+    }catch(error){
+        console.log('Application Controller Error');
+
+        if (error.message === 'Application not found') {
+            return res.status(404).json({
+                success: false,
+                message: 'Application not found'
+            });
+        }
+
+        if (error.message.includes('Unauthorized')) {
+            return res.status(403).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid application ID format'
+            });
+        }
+        return res.status(error.statusCode).json({
+            success : false,
+            message : error.message
+        });
+    }
+});
+
+const getSingleApplication = catchAsynErrors(async (req, res, next) => {
+    try{
+        const applicationId = req.params.id;
+        const application = await applicationService.getSingleApplication(applicationId);
+        return res.status(200).json({
+            success : true,
+            application,
+            message : 'Apllications Retreived Successfully'
+        });
+    }
+    catch(error){
+        console.log('Application Controller Error');
+        return res.status(error.statusCode).json({
+            success : false,
+            message : error.message
+        });
+    }
+})
+
 export {
     postApplication,
     deleteApplication,
-    JobSeekerGetApplication,
     employerGetApplication,
+    getApplicationsOfSeeker,
+    getSingleApplication
 }

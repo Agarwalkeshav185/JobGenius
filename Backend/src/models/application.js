@@ -66,10 +66,16 @@ const applicationSchema = new mongoose.Schema({
     jobInfo : {
         jobId : {
             type :mongoose.Schema.Types.ObjectId,
+            ref : 'Job',
             required : true
         },
         jobTitle : {
             type : String,
+            required : true
+        },
+        company : {
+            type : String,
+            ref : 'Company',
             required : true
         }
     },
@@ -82,8 +88,13 @@ const applicationSchema = new mongoose.Schema({
             type : Boolean,
             default : false
         }
+    },
+    status : {
+        type : String,
+        enum : ['under Review', 'Applied', 'Withdrawn', 'Shortlisted', 'Selected', 'Rejected'],
+        default : 'Applied'
     }
-});
+}, {timestamps: true});
 
 const Application = mongoose.model('Application', applicationSchema);
 
