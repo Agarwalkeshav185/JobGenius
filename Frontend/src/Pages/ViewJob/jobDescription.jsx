@@ -17,90 +17,6 @@ import {
 } from 'react-icons/fa';
 import JobServices from '../../Services/JobServices';
 
-// ✅ Sample/Mock Data
-const SAMPLE_JOB = {
-  _id: '123456',
-  title: 'Senior Full Stack Developer',
-  location: 'New York, NY',
-  jobType: 'Full-Time',
-  experienceLevel: 'Senior Level',
-  salary: '$120,000 - $160,000',
-  createdAt: '2024-11-20T10:00:00Z',
-  introduction: `We are seeking an experienced Senior Full Stack Developer to join our dynamic team. This role offers the opportunity to work on cutting-edge technologies and lead complex projects that impact millions of users worldwide.
-
-As a key member of our engineering team, you will be responsible for designing, developing, and maintaining scalable web applications. You'll collaborate with cross-functional teams including designers, product managers, and other engineers to deliver high-quality software solutions.`,
-  
-  responsibilities: [
-    'Design and develop full-stack web applications using React, Node.js, and MongoDB',
-    'Lead technical discussions and provide mentorship to junior developers',
-    'Collaborate with product managers to define project requirements and technical specifications',
-    'Write clean, maintainable, and well-documented code following best practices',
-    'Conduct code reviews and ensure code quality across the team',
-    'Optimize application performance and troubleshoot production issues',
-    'Participate in agile ceremonies including sprint planning, daily standups, and retrospectives',
-    'Stay updated with emerging technologies and propose innovative solutions'
-  ],
-  
-  qualifications: [
-    '5+ years of professional experience in full-stack development',
-    'Strong proficiency in JavaScript/TypeScript, React, and Node.js',
-    'Experience with MongoDB, PostgreSQL, or other database systems',
-    'Solid understanding of RESTful APIs and microservices architecture',
-    'Experience with cloud platforms (AWS, Azure, or GCP)',
-    'Familiarity with Docker, Kubernetes, and CI/CD pipelines',
-    'Excellent problem-solving skills and attention to detail',
-    'Strong communication and collaboration skills',
-    'Bachelor\'s degree in Computer Science or equivalent experience'
-  ],
-  
-  companyId: {
-    _id: 'company123',
-    name: 'TechCorp Innovation',
-    logo: 'https://via.placeholder.com/100x100/14B8A6/ffffff?text=TC',
-    location: 'San Francisco, CA',
-    description: 'TechCorp Innovation is a leading technology company specializing in cutting-edge software solutions. We pride ourselves on fostering a culture of innovation, collaboration, and continuous learning. Our team of talented professionals works on projects that make a real difference in people\'s lives.',
-    website: 'https://techcorp.example.com'
-  },
-  
-  categoryId: {
-    _id: 'cat123',
-    name: 'Software Engineering'
-  }
-};
-
-const SAMPLE_RELATED_JOBS = [
-  {
-    _id: 'job1',
-    title: 'Frontend Developer',
-    location: 'Remote',
-    salary: '$90,000 - $130,000',
-    companyId: {
-      name: 'StartupXYZ',
-      logo: 'https://via.placeholder.com/50x50/6366F1/ffffff?text=SX'
-    }
-  },
-  {
-    _id: 'job2',
-    title: 'Backend Engineer',
-    location: 'Boston, MA',
-    salary: '$100,000 - $140,000',
-    companyId: {
-      name: 'DataFlow Inc',
-      logo: 'https://via.placeholder.com/50x50/EC4899/ffffff?text=DF'
-    }
-  },
-  {
-    _id: 'job3',
-    title: 'DevOps Engineer',
-    location: 'Austin, TX',
-    salary: '$110,000 - $150,000',
-    companyId: {
-      name: 'CloudNine',
-      logo: 'https://via.placeholder.com/50x50/F59E0B/ffffff?text=CN'
-    }
-  }
-];
-
 export default function JobDetails() {
   const { jobId } = useParams();
   const navigate = useNavigate();
@@ -112,17 +28,7 @@ export default function JobDetails() {
   const [useMockData, setUseMockData] = useState(true); // ✅ Toggle for mock data
 
   useEffect(() => {
-    if (useMockData) {
-      // ✅ Use sample data
-      setTimeout(() => {
-        setJob(SAMPLE_JOB);
-        setRelatedJobs(SAMPLE_RELATED_JOBS);
-        setLoading(false);
-      }, 500); // Simulate loading delay
-    } else {
-      // Use real API
-      fetchJobDetails();
-    }
+    fetchJobDetails();
   }, [jobId, useMockData]);
 
   const fetchJobDetails = async () => {
@@ -130,10 +36,8 @@ export default function JobDetails() {
       setLoading(true);
       setError('');
       const response = await JobServices.getJobByIdForDescription(jobId);
-      console.log(response.data);
       setJob(response.data);
       
-      // Fetch related jobs based on category
       if (response.data?.categoryId?._id) {
         fetchRelatedJobs(response.data.categoryId._id);
       }
@@ -332,14 +236,6 @@ export default function JobDetails() {
               </div>
             </div>
           </div>
-
-          {/* Toggle button for demo purposes */}
-          <button
-            onClick={() => setUseMockData(!useMockData)}
-            className="mt-6 px-5 py-2.5 bg-teal-600/90 hover:bg-teal-700 text-white text-sm rounded-lg transition-colors shadow-md"
-          >
-            {useMockData ? 'Switch to Real API' : 'Switch to Mock Data'}
-          </button>
         </div>
       </div>
 
@@ -347,8 +243,6 @@ export default function JobDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-
-                        
 
             {/* Job Description */}
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -390,15 +284,9 @@ export default function JobDetails() {
           </div>
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Apply Card */}
+            {/* Saved Card */}
             {/* <div className=" bg-white rounded-lg shadow-sm p-6 top-4">
               <div className="flex gap-3 ">
-                <button
-                  onClick={handleApply}
-                  className="w-full py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-semibold transition-colors"
-                >
-                  Apply Now
-                </button>
                 <button
                   onClick={handleSaveJob}
                   className="w-full py-3 border-2 border-teal-500 text-teal-600 hover:bg-teal-50 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"

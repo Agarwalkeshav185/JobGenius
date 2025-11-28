@@ -12,6 +12,7 @@ import {
   FaCheckCircle
 } from 'react-icons/fa';
 import JobServices from '../../Services/JobServices';
+import applyServices from '../../Services/applyServices';
 
 export default function ApplyJob() {
   const { jobId } = useParams();
@@ -23,12 +24,13 @@ export default function ApplyJob() {
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    fullName: '',
+    name: '',
     email: '',
-    phone: '',
-    linkedIn: '',
+    phoneNumber: '',
+    linkedin: '',
     github: '',
     portfolio: '',
+    address: '',
     coverLetter: '',
     resume: null,
     yearsOfExperience: '',
@@ -107,12 +109,12 @@ export default function ApplyJob() {
     const errors = {};
 
     // Required fields
-    if (!formData.fullName.trim()) errors.fullName = 'Full name is required';
+    if (!formData.name.trim()) errors.name = 'Full name is required';
     if (!formData.email.trim()) errors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
-    if (!formData.phone.trim()) errors.phone = 'Phone number is required';
-    else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) errors.phone = 'Phone number must be 10 digits';
-    if (!formData.coverLetter.trim()) errors.coverLetter = 'Cover letter is required';
+    if (!formData.phoneNumber.trim()) errors.phoneNumber = 'Phone number is required';
+    else if (!/^\d{10}$/.test(formData.phoneNumber.replace(/\D/g, ''))) errors.phoneNumber = 'Phone number must be 10 digits';
+    if (!formData.address.trim()) errors.address = 'Address is required';
     if (!formData.resume) errors.resume = 'Resume is required';
     if (!formData.yearsOfExperience) errors.yearsOfExperience = 'Experience is required';
 
@@ -131,20 +133,68 @@ export default function ApplyJob() {
       setSubmitting(true);
       setError('');
 
-      // Create FormData for file upload
+      // ✅ Create FormData and append fields explicitly
       const applicationData = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (formData[key]) {
-          applicationData.append(key, formData[key]);
+      
+      // Required fields
+      applicationData.append('name', formData.name);
+      applicationData.append('email', formData.email);
+      applicationData.append('phoneNumber', formData.phoneNumber);
+      applicationData.append('address', formData.address);
+      applicationData.append('yearsOfExperience', formData.yearsOfExperience);
+      
+      // Optional fields - only append if they have values
+      if (formData.linkedin?.trim()) {
+        applicationData.append('linkedin', formData.linkedin);
+      }
+      if (formData.github?.trim()) {
+        applicationData.append('github', formData.github);
+      }
+      if (formData.portfolio?.trim()) {
+        applicationData.append('portfolio', formData.portfolio);
+      }
+      if (formData.coverLetter?.trim()) {
+        applicationData.append('coverLetter', formData.coverLetter);
+      }
+      if (formData.currentCompany?.trim()) {
+        applicationData.append('currentCompany', formData.currentCompany);
+      }
+      if (formData.noticePeriod?.trim()) {
+        applicationData.append('noticePeriod', formData.noticePeriod);
+      }
+      if (formData.expectedSalary?.trim()) {
+        applicationData.append('expectedSalary', formData.expectedSalary);
+      }
+      
+      // ✅ Resume file MUST be appended last and separately
+      if (formData.resume) {
+        applicationData.append('resume', formData.resume);
+        console.log('Resume attached:', {
+          name: formData.resume.name,
+          size: formData.resume.size,
+          type: formData.resume.type
+        });
+      }
+
+      // ✅ Debug FormData contents
+      console.log('=== FORM DATA TO SEND ===');
+      for (let [key, value] of applicationData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}:`, {
+            name: value.name,
+            size: value.size,
+            type: value.type
+          });
+        } else {
+          console.log(`${key}:`, value);
         }
-      });
-      applicationData.append('jobId', jobId);
+      }
+      console.log('========================');
 
-      // TODO: Call API to submit application
-      // await JobServices.applyToJob(applicationData);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call API
+      const response = await applyServices.applyJob(jobId, applicationData);
+      
+      console.log('✅ Application submitted successfully:', response);
 
       setSuccess(true);
       setTimeout(() => {
@@ -152,8 +202,9 @@ export default function ApplyJob() {
       }, 3000);
 
     } catch (err) {
-      console.error('Error submitting application:', err);
-      setError('Failed to submit application. Please try again.');
+      console.error('❌ Error submitting application:', err);
+      console.error('Error response:', err.response?.data);
+      setError(err.response?.data?.message || 'Failed to submit application. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -230,17 +281,17 @@ export default function ApplyJob() {
                   <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    name="fullName"
-                    value={formData.fullName}
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
-                      formErrors.fullName ? 'border-red-500' : 'border-gray-300'
+                      formErrors.name ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="John Doe"
                   />
                 </div>
-                {formErrors.fullName && (
-                  <p className="mt-1 text-sm text-red-500">{formErrors.fullName}</p>
+                {formErrors.name && (
+                  <p className="mt-1 text-sm text-red-500">{formErrors.name}</p>
                 )}
               </div>
 
@@ -276,17 +327,17 @@ export default function ApplyJob() {
                   <FaPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
                     onChange={handleInputChange}
                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
-                      formErrors.phone ? 'border-red-500' : 'border-gray-300'
+                      formErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
-                {formErrors.phone && (
-                  <p className="mt-1 text-sm text-red-500">{formErrors.phone}</p>
+                {formErrors.phoneNumber && (
+                  <p className="mt-1 text-sm text-red-500">{formErrors.phoneNumber}</p>
                 )}
               </div>
 
@@ -299,8 +350,8 @@ export default function ApplyJob() {
                   <FaLinkedin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="url"
-                    name="linkedIn"
-                    value={formData.linkedIn}
+                    name="linkedin"
+                    value={formData.linkedin}
                     onChange={handleInputChange}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="https://linkedin.com/in/johndoe"
@@ -339,6 +390,26 @@ export default function ApplyJob() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   placeholder="https://johndoe.com"
                 />
+              </div>
+
+              {/* Address */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Address <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  rows="3"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                    formErrors.address ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="123 Main Street, Apt 4B, New York, NY 10001"
+                />
+                {formErrors.address && (
+                  <p className="mt-1 text-sm text-red-500">{formErrors.address}</p>
+                )}
               </div>
             </div>
           </div>
