@@ -64,11 +64,20 @@ class ApplicationService{
                 company : jobDetails.companyId
             }
 
+            const statusHistory = {
+                status : 'Applied',
+                changedBy : {
+                    userId : userData.id,
+                    role : 'Job Seeker'
+                },
+                changedAt : new Date()
+            }
+
             const application = await this.applicationRepository.create({
                 jobSeekerInfo,
                 employerInfo,
                 jobInfo,
-
+                statusHistory
             });
             return application;
         } catch (error) {
@@ -102,8 +111,7 @@ class ApplicationService{
     async getApplicationsOfSeeker(seekerId){
         try{
             const data = {
-                "jobSeekerInfo.id" : seekerId,
-                "deletedBy.employer" : false
+                "jobSeekerInfo.id" : seekerId
             }
             const applications = await this.applicationRepository.getApplicationAppiledByUser(data);
             return applications;
@@ -122,6 +130,28 @@ class ApplicationService{
         }
         catch(error){
             console.log('Application Service Error');
+            throw new ErrorHandler(error.message, error.statusCode);
+        }
+    }
+
+    async WithdrawApplication(userId, applicationId){
+        try{
+            const application = await this.applicationRepository.get(applicationId);
+            application.status = 'Withdrawn';
+            application.statusHistory.push({
+                status : 'Withdrawn',
+                changedBy : {
+                    userId : userId,
+                    role : 'Job Seeker'
+                },
+                changedAt : new Date()
+            })
+            await application.save();
+
+            console.log(application);
+            return application;
+        }catch(error){
+            console.log('Application Service Error', error);
             throw new ErrorHandler(error.message, error.statusCode);
         }
     }

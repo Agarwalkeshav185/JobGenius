@@ -79,21 +79,25 @@ const applicationSchema = new mongoose.Schema({
             required : true
         }
     },
-    deletedBy : {
-        jobSeeker : {
-            type : Boolean,
-            default : false
-        },
-        employer : {
-            type : Boolean,
-            default : false
-        }
-    },
     status : {
         type : String,
         enum : ['under Review', 'Applied', 'Withdrawn', 'Shortlisted', 'Selected', 'Rejected'],
         default : 'Applied'
-    }
+    },
+    statusHistory: [{
+        status: String,
+        changedBy: {
+            userId: {
+                type : mongoose.Schema.Types.ObjectId,
+                ref : 'User'
+            },
+            role: String // 'Job Seeker' or 'Employer'
+        },
+        changedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 }, {timestamps: true});
 
 const Application = mongoose.model('Application', applicationSchema);

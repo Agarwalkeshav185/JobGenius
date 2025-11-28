@@ -52,6 +52,19 @@ class ApplicationRepository extends CrudRepository{
             throw new ErrorHandler(error.message, 500);
         }
     }
+
+    async WithdrawApplication(applicationId){
+        try{
+            const application = await Application.findByIdAndUpdate(applicationId);
+            return application;
+        }catch(error){
+            console.log('Application Repository Error', error);
+            if (error.name === 'CastError') {
+                throw new ErrorHandler('Invalid application ID format', 400);
+            }
+            throw new ErrorHandler(error.message, 500);
+        }
+    }
 };
 
 export default ApplicationRepository;

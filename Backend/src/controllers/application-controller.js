@@ -87,6 +87,7 @@ const deleteApplication = catchAsynErrors(async (req, res, next)=>{
 
 const getApplicationsOfSeeker = catchAsynErrors(async(req, res, next) =>{
     try{
+        console.log(req.user);
         const applications = await applicationService.getApplicationsOfSeeker(req.user._id);
 
         if (!applications) {
@@ -148,12 +149,32 @@ const getSingleApplication = catchAsynErrors(async (req, res, next) => {
             message : error.message
         });
     }
-})
+});
+
+const WithdrawApplication = catchAsynErrors(async(req, res, next) => {
+    try{
+        const applicationId = req.params.id;
+        const userId = req.user._id;
+        const response = await applicationService.WithdrawApplication(userId, applicationId);
+        return res.status(200).json({
+            response,
+            success : true,
+            message : 'Application Withdrawn Successfully'
+        });
+    }catch(error){
+        console.log('Application Controller Error');
+        return res.status(error.statusCode).json({
+            success : false,
+            message : error.message
+        });
+    }
+});
 
 export {
     postApplication,
     deleteApplication,
     employerGetApplication,
     getApplicationsOfSeeker,
-    getSingleApplication
+    getSingleApplication,
+    WithdrawApplication
 }

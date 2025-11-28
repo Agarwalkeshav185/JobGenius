@@ -63,6 +63,17 @@ const applyServices = {
             throw error;
         }
     },
+
+    WithdrawApplication : async (applicationId) => {
+        try{
+            const response = await axiosInstance.patch(`/applications/update/${applicationId}`);
+            return response.data;
+        }
+        catch(error){
+            console.error('Error fetching job by ID:', error);
+            throw error;
+        }
+    }
 }
 
 export default applyServices;
